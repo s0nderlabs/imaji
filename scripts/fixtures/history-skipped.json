@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "fingerprint": "0001787894600000_7f0a1c2d-0000-4000-8000-000000000003",
+      "senderType": 1,
+      "messageText": "imaji release job.\nrepo: s0nderlabs/imaji\ntag: v0.3.1"
+    },
+    {
+      "fingerprint": "0001787894700000_7f0a1c2d-0000-4000-8000-000000000004",
+      "senderType": 0,
+      "messageText": "<p>Skipping v0.3.1: it is a dependency bump and a typo in the README, nothing a reader of yours would care about.</p><p>I will fold it into the next real release instead.</p>"
+    }
+  ]
+}

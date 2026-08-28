@@ -1,0 +1,67 @@
+/* Every face elpabl0 named, declared once. Paths are relative to design/frontdoor/.
+   Trial and personal-use cuts live in design/fonts and are gitignored; nothing here ships. */
+
+/* PolySans (Gradient trial): Slim 300, Neutral 400, Relax 500, Median 600, Bulky 700, Inky 800 */
+@font-face{font-family:"PolySans";font-weight:300;font-style:normal;src:url("../fonts/polysans/PolySansTrial-Slim.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:300;font-style:italic;src:url("../fonts/polysans/PolySansTrial-SlimItalic.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:400;font-style:normal;src:url("../fonts/polysans/PolySansTrial-Neutral.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:400;font-style:italic;src:url("../fonts/polysans/PolySansTrial-NeutralItalic.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:500;font-style:normal;src:url("../fonts/polysans/PolySansTrial-Relax.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:500;font-style:italic;src:url("../fonts/polysans/PolySansTrial-RelaxItalic.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:600;font-style:normal;src:url("../fonts/polysans/PolySansTrial-Median.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:600;font-style:italic;src:url("../fonts/polysans/PolySansTrial-MedianItalic.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:700;font-style:normal;src:url("../fonts/polysans/PolySansTrial-Bulky.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:700;font-style:italic;src:url("../fonts/polysans/PolySansTrial-BulkyItalic.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:800;font-style:normal;src:url("../fonts/polysans/PolySansTrial-Inky.otf") format("opentype")}
+@font-face{font-family:"PolySans";font-weight:800;font-style:italic;src:url("../fonts/polysans/PolySansTrial-InkyItalic.otf") format("opentype")}
+
+/* PolySans Mono (same cuts) */
+@font-face{font-family:"PolySans Mono";font-weight:300;src:url("../fonts/polysans-mono/PolySansTrial-SlimMono.otf") format("opentype")}
+@font-face{font-family:"PolySans Mono";font-weight:400;src:url("../fonts/polysans-mono/PolySansTrial-NeutralMono.otf") format("opentype")}
+@font-face{font-family:"PolySans Mono";font-weight:500;src:url("../fonts/polysans-mono/PolySansTrial-RelaxMono.otf") format("opentype")}
+@font-face{font-family:"PolySans Mono";font-weight:600;src:url("../fonts/polysans-mono/PolySansTrial-MedianMono.otf") format("opentype")}
+@font-face{font-family:"PolySans Mono";font-weight:700;src:url("../fonts/polysans-mono/PolySansTrial-BulkyMono.otf") format("opentype")}
+@font-face{font-family:"PolySans Mono";font-weight:800;src:url("../fonts/polysans-mono/PolySansTrial-InkyMono.otf") format("opentype")}
+
+/* Die Grotesk (Klim test fonts): the variable roman + italic, and the four cuts A to D (raw to clean) */
+@font-face{font-family:"Die Grotesk";font-weight:300 700;font-style:normal;src:url("../fonts/die-grotesk/test-die-grotesk-vf-roman.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk";font-weight:300 700;font-style:italic;src:url("../fonts/die-grotesk/test-die-grotesk-vf-italic.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk A";font-weight:400;src:url("../fonts/die-grotesk/test-die-grotesk-a-regular.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk A";font-weight:500;src:url("../fonts/die-grotesk/test-die-grotesk-a-medium.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk B";font-weight:400;src:url("../fonts/die-grotesk/test-die-grotesk-b-regular.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk B";font-weight:500;src:url("../fonts/die-grotesk/test-die-grotesk-b-medium.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk C";font-weight:400;src:url("../fonts/die-grotesk/test-die-grotesk-c-regular.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk C";font-weight:500;src:url("../fonts/die-grotesk/test-die-grotesk-c-medium.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk D";font-weight:400;src:url("../fonts/die-grotesk/test-die-grotesk-d-regular.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk D";font-weight:500;src:url("../fonts/die-grotesk/test-die-grotesk-d-medium.woff2") format("woff2")}
+
+/* Open Sauce One (OFL) */
+@font-face{font-family:"Open Sauce One";font-weight:400;src:url("../fonts/OpenSauceOne-Regular.ttf") format("truetype")}
+@font-face{font-family:"Open Sauce One";font-weight:500;src:url("../fonts/OpenSauceOne-Medium.ttf") format("truetype")}
+@font-face{font-family:"Open Sauce One";font-weight:600;src:url("../fonts/OpenSauceOne-SemiBold.ttf") format("truetype")}
+
+/* Helvetica Neue: the system face on this Mac */
+@font-face{font-family:"Helvetica Neue";font-weight:300;src:local("Helvetica Neue Light"),local("HelveticaNeue-Light")}
+@font-face{font-family:"Helvetica Neue";font-weight:400;src:local("Helvetica Neue"),local("HelveticaNeue")}
+@font-face{font-family:"Helvetica Neue";font-weight:500;src:local("Helvetica Neue Medium"),local("HelveticaNeue-Medium")}
+@font-face{font-family:"Helvetica Neue";font-weight:700;src:local("Helvetica Neue Bold"),local("HelveticaNeue-Bold")}
+
+/* Display faces */
+@font-face{font-family:"Peace Sans";font-weight:400;src:url("../fonts/free/PeaceSans.otf") format("opentype")}
+@font-face{font-family:"Tempting";font-weight:400;src:url("../fonts/free/Tempting.otf") format("opentype")}
+@font-face{font-family:"Adventor";font-weight:400;src:url("../fonts/free/texgyreadventor-regular.otf") format("opentype")}
+@font-face{font-family:"Adventor";font-weight:700;src:url("../fonts/free/texgyreadventor-bold.otf") format("opentype")}
+@font-face{font-family:"Geist Pixel";font-weight:400;src:url("../fonts/geist-pixel/GeistPixel-Square.woff2") format("woff2")}
+@font-face{font-family:"Geist Pixel Grid";font-weight:400;src:url("../fonts/geist-pixel/GeistPixel-Grid.woff2") format("woff2")}
+
+/* Incoming trials (PP Mori, Recoleta, Akzidenz-Grotesk, Cooper BT) are appended below by fonts-incoming.css when they land */
+
+/* PP Mori (Pangram Pangram, free for personal use, obtained through the foundry's own form Aug 28 2026; never redistributed) */
+@font-face{font-family:"PP Mori";font-weight:900;font-style:normal;src:url("../fonts/pp-mori/PPMori-Black.otf") format("opentype")}
+@font-face{font-family:"PP Mori";font-weight:900;font-style:italic;src:url("../fonts/pp-mori/PPMori-BlackItalic.otf") format("opentype")}
+@font-face{font-family:"PP Mori";font-weight:200;font-style:normal;src:url("../fonts/pp-mori/PPMori-Extralight.otf") format("opentype")}
+@font-face{font-family:"PP Mori";font-weight:200;font-style:italic;src:url("../fonts/pp-mori/PPMori-ExtralightItalic.otf") format("opentype")}
+@font-face{font-family:"PP Mori";font-weight:400;font-style:normal;src:url("../fonts/pp-mori/PPMori-Regular.otf") format("opentype")}
+@font-face{font-family:"PP Mori";font-weight:600;font-style:normal;src:url("../fonts/pp-mori/PPMori-Semibold.otf") format("opentype")}
+@font-face{font-family:"PP Mori";font-weight:600;font-style:italic;src:url("../fonts/pp-mori/PPMori-SemiboldItalic.otf") format("opentype")}
+@font-face{font-family:"PP Mori";font-weight:400;font-style:italic;src:url("../fonts/pp-mori/PPMori-Italic.otf") format("opentype")}

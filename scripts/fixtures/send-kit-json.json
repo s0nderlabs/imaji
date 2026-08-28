@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "reply": {
+    "fingerprint": "0001787894509001_7f0a1c2d-0000-4000-8000-000000000002",
+    "senderType": 0,
+    "messageText": "<p>Here is the kit for v0.3.0. I could not reach the render endpoint, so the JSON is below.</p><pre><code>{\n  &quot;version&quot;: &quot;v0.3.0&quot;,\n  &quot;repo&quot;: &quot;s0nderlabs/imaji&quot;,\n  &quot;releaseUrl&quot;: &quot;https://github.com/s0nderlabs/imaji/releases/tag/v0.3.0&quot;,\n  &quot;outputs&quot;: [\n    &quot;x&quot;,\n    &quot;card&quot;\n  ],\n  &quot;look&quot;: &quot;editorial&quot;,\n  &quot;brand&quot;: {\n    &quot;name&quot;: &quot;imaji&quot;,\n    &quot;accent&quot;: &quot;#E8641A&quot;,\n    &quot;ground&quot;: &quot;dark&quot;,\n    &quot;type&quot;: &quot;grotesque&quot;\n  },\n  &quot;tweet&quot;: &quot;imaji v0.3.0: the kit page now polls the film while it renders.&quot;,\n  &quot;card&quot;: {\n    &quot;headline&quot;: &quot;The film arrives while you read&quot;,\n    &quot;subline&quot;: &quot;No reload, no waiting screen&quot;,\n    &quot;accentWord&quot;: &quot;film&quot;\n  },\n  &quot;memory&quot;: &quot;v0.3.0 was a polish release on top of v0.2.0&#x27;s film.&quot;\n}</code></pre>"
+  }
+}

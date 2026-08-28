@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>imaji card</title>
+<link rel="stylesheet" href="../../vendor/fonts/vendored.css">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow:hidden;background:#1A1614}
+
+/* warm neutrals of one temperature, one accent with one job: the accent word. */
+.stage{
+  --ground:#1A1614;
+  --ink:#F3EFE8;
+  --ink-2:#A69E94;
+  --line:rgba(243,239,232,0.14);
+  --accent:#E2583E;
+  --accent-ink:#1A1614;
+  --font-display:'Adventor','Open Sauce One',"Helvetica Neue",Helvetica,sans-serif;
+  --font-text:'Open Sauce One',"Helvetica Neue",Helvetica,sans-serif;
+  --font-mono:'Geist Pixel',ui-monospace,monospace;
+
+  position:relative;
+  width:1200px;height:630px;
+  overflow:hidden;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--font-text);
+  -webkit-font-smoothing:antialiased;
+}
+.stage[data-ground="light"]{
+  --ground:#F7F4EE;
+  --ink:#1C1714;
+  --ink-2:#756D63;
+  --line:rgba(28,23,20,0.13);
+  --accent-ink:#F7F4EE;
+}
+
+.frame{
+  position:absolute;inset:0;
+  padding:64px;
+  display:flex;flex-direction:column;
+}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:24px}
+
+.mark{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:34px;line-height:1;
+  letter-spacing:-0.02em;
+  color:var(--ink);
+  white-space:nowrap;
+}
+.mark img{display:block;height:56px;width:auto;max-width:360px}
+
+/* the version is a quiet pixel tag, not a pill: the accent has one job */
+.version{
+  font-family:var(--font-mono);
+  font-size:22px;line-height:1;
+  color:var(--ink-2);
+  white-space:nowrap;
+  padding-top:6px;
+}
+
+/* the ladder steps the headline down rather than let it crowd the top rail */
+.spacer{flex:1 1 auto;min-height:64px}
+
+.headline{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:88px;
+  line-height:1.04;
+  letter-spacing:-0.02em;
+  color:var(--ink);
+  margin:0;
+  max-width:1040px;
+  overflow-wrap:break-word;
+}
+.headline .accent{color:var(--accent)}
+
+.subline{
+  margin:22px 0 0;
+  font-size:29px;line-height:1.36;
+  font-weight:400;
+  letter-spacing:-0.006em;
+  color:var(--ink-2);
+  max-width:880px;
+}
+
+.foot{
+  position:relative;
+  margin-top:36px;
+  padding-top:22px;
+  display:flex;align-items:baseline;gap:14px;
+  font-family:var(--font-text);
+  font-size:20px;line-height:1;
+  color:var(--ink-2);
+}
+/* hairline by tone, never a solid border */
+.foot::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--line)}
+.foot .dot{opacity:0.5}
+
+/* serif and mono brands swap the display + text faces wholesale */
+.stage[data-type="serif"]{
+  --font-display:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --font-text:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+}
+.stage[data-type="serif"] .headline{letter-spacing:-0.012em}
+.stage[data-type="mono"]{
+  --font-display:ui-monospace,"SF Mono",Menlo,monospace;
+  --font-text:ui-monospace,"SF Mono",Menlo,monospace;
+}
+.stage[data-type="mono"] .headline{letter-spacing:-0.03em;font-size:74px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="stage" data-composition-id="imaji-card" data-width="1200" data-height="630">
+  <div class="frame">
+    <div class="top">
+      <div class="mark" data-mark></div>
+      <div class="version" data-version></div>
+    </div>
+    <div class="spacer"></div>
+    <h1 class="headline" data-headline></h1>
+    <p class="subline" data-subline></p>
+    <div class="foot">
+      <span data-repo></span>
+      <span class="dot" data-dot>&middot;</span>
+      <span data-url></span>
+    </div>
+  </div>
+</div>
+<script>/*__IMAJI_VARS__*/</script>
+<script>
+(function () {
+  var V = window.IMAJI_VARS || {}
+  var stage = document.querySelector("[data-composition-id]")
+
+  stage.setAttribute("data-ground", V.ground === "light" ? "light" : "dark")
+  stage.setAttribute("data-type", V.type || "grotesque")
+  if (V.accent) stage.style.setProperty("--accent", V.accent)
+
+  /* look changes the type scale only; the card has no motion */
+  var SCALE = V.look === "punchy" ? 1.07 : V.look === "quiet" ? 0.93 : 1
+
+  function q(sel) { return stage.querySelector(sel) }
+
+  /* brand mark: the logo when the fetch succeeded, the brand name otherwise */
+  var mark = q("[data-mark]")
+  if (V.logoDataUrl) {
+    var img = document.createElement("img")
+    img.src = V.logoDataUrl
+    img.alt = ""
+    mark.appendChild(img)
+  } else {
+    mark.textContent = V.brandName || ""
+  }
+
+  q("[data-version]").textContent = V.version || ""
+  q("[data-repo]").textContent = V.repo || ""
+
+  var urlEl = q("[data-url]")
+  var url = (V.url || "").replace(/^https?:\/\//, "").replace(/\/$/, "")
+  urlEl.textContent = url
+  if (!url) q("[data-dot]").style.display = "none"
+
+  /* headline with the accent word coloured. Matching is per word and
+     case-insensitive; the first match wins so a repeated word does not
+     light up twice. */
+  var headline = q("[data-headline]")
+  var text = V.headline || ""
+  var accentWord = (V.accentWord || "").toLowerCase()
+  var words = text.split(/(\s+)/)
+  var used = false
+  for (var i = 0; i < words.length; i++) {
+    var w = words[i]
+    if (!w) continue
+    var bare = w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "").toLowerCase()
+    if (!used && accentWord && bare === accentWord) {
+      var span = document.createElement("span")
+      span.className = "accent"
+      span.textContent = w
+      headline.appendChild(span)
+      used = true
+    } else {
+      headline.appendChild(document.createTextNode(w))
+    }
+  }
+
+  var subline = q("[data-subline]")
+  subline.textContent = V.subline || ""
+  if (!V.subline) subline.style.display = "none"
+
+  /* Two-step font-size ladder. The headline may be long; step it down until
+     the whole frame fits inside the stage, never letting text overflow. */
+  var frame = stage.querySelector(".frame")
+  var baseHeadline = (V.type === "mono" ? 74 : 88) * SCALE
+  var baseSubline = 30 * SCALE
+  var ladder = [1, 0.82, 0.68]
+
+  function fits() {
+    return frame.scrollHeight <= stage.clientHeight && headline.scrollWidth <= headline.clientWidth + 1
+  }
+
+  function applyStep(k) {
+    headline.style.fontSize = (baseHeadline * ladder[k]).toFixed(2) + "px"
+    subline.style.fontSize = (baseSubline * (k === 0 ? 1 : 0.9)).toFixed(2) + "px"
+  }
+
+  function fit() {
+    for (var k = 0; k < ladder.length; k++) {
+      applyStep(k)
+      if (fits()) return
+    }
+  }
+
+  fit()
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      fit()
+      window.IMAJI_READY = true
+    })
+  } else {
+    window.IMAJI_READY = true
+  }
+})()
+</script>
+</body>
+</html>

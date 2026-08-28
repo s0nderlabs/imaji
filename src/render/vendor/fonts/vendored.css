@@ -1,0 +1,9 @@
+/* Faces the compositions may use. All fully licensed for redistribution:
+   Open Sauce One (SIL OFL), TeX Gyre Adventor (GUST font licence), Geist Pixel
+   (SIL OFL). Loaded over file:// by Chrome at render time, never from a CDN. */
+@font-face{font-family:"Open Sauce One";font-weight:400;font-style:normal;font-display:block;src:url(OpenSauceOne-Regular.ttf) format("truetype")}
+@font-face{font-family:"Open Sauce One";font-weight:500;font-style:normal;font-display:block;src:url(OpenSauceOne-Medium.ttf) format("truetype")}
+@font-face{font-family:"Open Sauce One";font-weight:600;font-style:normal;font-display:block;src:url(OpenSauceOne-SemiBold.ttf) format("truetype")}
+@font-face{font-family:"Adventor";font-weight:400;font-style:normal;font-display:block;src:url(texgyreadventor-regular.otf) format("opentype")}
+@font-face{font-family:"Adventor";font-weight:700;font-style:normal;font-display:block;src:url(texgyreadventor-bold.otf) format("opentype")}
+@font-face{font-family:"Geist Pixel";font-weight:400;font-style:normal;font-display:block;src:url(GeistPixel-Square.woff2) format("woff2")}

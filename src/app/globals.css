@@ -1,0 +1,1876 @@
+@import "tailwindcss";
+
+/* ===========================================================================
+   imaji, the house style.
+
+   Stance: warm, calm, exact, yours. This is not a dashboard. It is the desk
+   your Mind leaves its work on: warm paper, one white sheet in focus, the
+   earlier ones tidied into a stack behind it.
+
+   One accent, Tigerlily #E2583E, with exactly one job: the primary action,
+   one coloured word, and the two dots on the wordmark. Nowhere else.
+   One temperature: every neutral is warm. Hairlines are inset shadows, never
+   a solid border. Only the four house faces, never a system face on screen.
+   =========================================================================== */
+
+/* --------------------------------------------------------------- the faces */
+@font-face {
+  font-family: "Open Sauce One";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/OpenSauceOne-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Open Sauce One";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/OpenSauceOne-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Open Sauce One";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/OpenSauceOne-SemiBold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Adventor";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/texgyreadventor-regular.otf") format("opentype");
+}
+@font-face {
+  font-family: "Adventor";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/texgyreadventor-bold.otf") format("opentype");
+}
+@font-face {
+  font-family: "Geist Pixel";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/GeistPixel-Square.woff2") format("woff2");
+}
+
+/* PolySans and PolySans Mono are TRIAL cuts. They live in public/fonts/trial,
+   which is gitignored, so a clone of this repo has the directory missing: every
+   stack below therefore ends in a full-charset face that can carry the page on
+   its own. The trial cuts also only draw letters, digits, space, comma, full
+   stop and the two marks, so anything else falls through to that face too. */
+@font-face {
+  font-family: "PolySans";
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/trial/PolySansTrial-Slim.otf") format("opentype");
+}
+@font-face {
+  font-family: "PolySans";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/trial/PolySansTrial-Neutral.otf") format("opentype");
+}
+@font-face {
+  font-family: "PolySans";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/trial/PolySansTrial-Relax.otf") format("opentype");
+}
+@font-face {
+  font-family: "PolySans";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/trial/PolySansTrial-Median.otf") format("opentype");
+}
+@font-face {
+  font-family: "PolySans";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/trial/PolySansTrial-Bulky.otf") format("opentype");
+}
+@font-face {
+  font-family: "PolySans";
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/trial/PolySansTrial-Inky.otf") format("opentype");
+}
+@font-face {
+  font-family: "PolySans Mono";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/trial/PolySansTrial-NeutralMono.otf") format("opentype");
+}
+@font-face {
+  font-family: "PolySans Mono";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/trial/PolySansTrial-MedianMono.otf") format("opentype");
+}
+
+/* --------------------------------------------------------------- the tokens
+   These are the names the rest of imaji builds on, front door included.
+   Surfaces run page -> card-2 -> card: the paper, the quiet sheet, the one
+   sheet in focus. Ink runs ink -> ink-2 -> ink-3, three steps, no more. */
+:root {
+  color-scheme: light;
+
+  /* surfaces, warm, one temperature */
+  --page: oklch(95.2% 0.007 80);
+  --card: oklch(100% 0 0);
+  --card-2: oklch(98.4% 0.004 80);
+  --inset: oklch(97.2% 0.005 80);
+  --hover: oklch(95.2% 0.006 80);
+
+  /* ink */
+  --ink: oklch(24% 0.012 60);
+  --ink-2: oklch(48% 0.012 60);
+  --ink-3: oklch(64% 0.012 60);
+
+  /* hairlines, always drawn as an inset shadow or a 1px tone rule */
+  --line: oklch(92.5% 0.007 80);
+  --line-soft: oklch(95% 0.005 80);
+  --hair-soft: oklch(24% 0.012 60 / 0.055);
+  --hair: oklch(24% 0.012 60 / 0.1);
+  --hair-strong: oklch(24% 0.012 60 / 0.22);
+
+  /* the one accent: Tigerlily */
+  --accent: #E2583E;
+  --accent-ink: oklch(56% 0.18 32);
+  --accent-tint: oklch(95.8% 0.022 32);
+  --on-accent: oklch(19% 0.012 60);
+
+  /* the dark stage a rendered visual sits on */
+  --stage: oklch(18% 0.008 60);
+  --on-stage: oklch(96% 0.01 80);
+  --on-stage-2: oklch(72% 0.01 70);
+
+  /* elevation: contact plus ambient, one language, two tiers */
+  --shadow-card: 0 1px 2px oklch(0% 0 0 / 0.05), 0 10px 26px
+    oklch(0% 0 0 / 0.06), 0 28px 56px oklch(0% 0 0 / 0.05);
+  --shadow-lift: 0 1px 2px oklch(0% 0 0 / 0.04), 0 18px 40px
+    oklch(0% 0 0 / 0.08);
+
+  /* type */
+  --font-body: "PolySans", "Open Sauce One", "Helvetica Neue", Helvetica,
+    sans-serif;
+  --font-display: "Adventor", "Open Sauce One", "Helvetica Neue", sans-serif;
+  --font-mono: "PolySans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-pixel: "Geist Pixel", "Open Sauce One", monospace;
+
+  /* one scale. The front door reads hero / lg / md / sm / xs; the kit pages
+     read xl / lg / md / sm / xs. Five sizes on any one page. */
+  --t-hero: clamp(2.2rem, 6.2vw, 5.35rem);
+  --t-xl: clamp(29px, 5.2vw, 40px);
+  --t-lg: 20px;
+  --t-md: 16px;
+  --t-sm: 14px;
+  --t-xs: 12.5px;
+
+  /* radius, keyed to role */
+  --r: 14px;
+  --r-in: 9px;
+  --r-ctl: 999px;
+
+  /* motion */
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --t-fast: 150ms;
+  --t: 220ms;
+  --t-slow: 420ms;
+
+  --mark: 28px;
+  --measure: 62ch;
+
+  /* the fold. The film is dark, so the type standing on it is light in both
+     themes; only the scrim's last stop follows the page ground. */
+  --fold-ground: oklch(17.5% 0.008 60);
+  --fold-ink: oklch(94% 0.008 84);
+  --fold-ink-2: oklch(74.5% 0.01 78);
+  --fold-ink-3: oklch(58.5% 0.01 74);
+  --fold-hair: oklch(97% 0.01 80 / 0.16);
+
+  /* aliases kept so the older Tailwind colour names still resolve */
+  --ground: var(--page);
+  --ground-sub: var(--card-2);
+  --ground-deep: var(--inset);
+  --accent-quiet: var(--accent-tint);
+  --ok: oklch(52% 0.09 150);
+  --warn: oklch(58% 0.1 70);
+  --bad: oklch(52% 0.15 27);
+  --font-ui: var(--font-body);
+}
+
+/* ------------------------------------------------------------------ dark
+   The same house, at night: one warm temperature, three inks, one accent.
+   Only the tokens move, so every page built on them (the kit pages
+   included) follows without a second stylesheet.
+
+   Three blocks on purpose. The viewer's explicit choice is stamped on
+   <html> as data-theme; with nothing stamped, the system decides. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --page: oklch(17.5% 0.008 60);
+    --card: oklch(21.6% 0.008 60);
+    --card-2: oklch(20% 0.008 60);
+    --inset: oklch(22.4% 0.008 60);
+    --hover: oklch(25.5% 0.009 60);
+
+    --ink: oklch(94% 0.008 84);
+    --ink-2: oklch(74.5% 0.01 78);
+    --ink-3: oklch(58.5% 0.01 74);
+
+    --line: oklch(97% 0.01 80 / 0.13);
+    --line-soft: oklch(97% 0.01 80 / 0.07);
+    --hair-soft: oklch(97% 0.01 80 / 0.06);
+    --hair: oklch(97% 0.01 80 / 0.12);
+    --hair-strong: oklch(97% 0.01 80 / 0.28);
+
+    --accent-ink: oklch(72% 0.16 32);
+    --accent-tint: oklch(34% 0.075 32);
+
+    --stage: oklch(13.5% 0.008 60);
+
+    --shadow-card:
+      0 1px 2px oklch(0% 0 0 / 0.5), 0 14px 30px oklch(0% 0 0 / 0.36),
+      inset 0 1px 0 oklch(100% 0 0 / 0.05);
+    --shadow-lift: 0 1px 2px oklch(0% 0 0 / 0.45), 0 18px 40px
+      oklch(0% 0 0 / 0.34);
+  }
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: oklch(17.5% 0.008 60);
+  --card: oklch(21.6% 0.008 60);
+  --card-2: oklch(20% 0.008 60);
+  --inset: oklch(22.4% 0.008 60);
+  --hover: oklch(25.5% 0.009 60);
+
+  --ink: oklch(94% 0.008 84);
+  --ink-2: oklch(74.5% 0.01 78);
+  --ink-3: oklch(58.5% 0.01 74);
+
+  --line: oklch(97% 0.01 80 / 0.13);
+  --line-soft: oklch(97% 0.01 80 / 0.07);
+  --hair-soft: oklch(97% 0.01 80 / 0.06);
+  --hair: oklch(97% 0.01 80 / 0.12);
+  --hair-strong: oklch(97% 0.01 80 / 0.28);
+
+  --accent-ink: oklch(72% 0.16 32);
+  --accent-tint: oklch(34% 0.075 32);
+
+  --stage: oklch(13.5% 0.008 60);
+
+  --shadow-card:
+    0 1px 2px oklch(0% 0 0 / 0.5), 0 14px 30px oklch(0% 0 0 / 0.36),
+    inset 0 1px 0 oklch(100% 0 0 / 0.05);
+  --shadow-lift: 0 1px 2px oklch(0% 0 0 / 0.45), 0 18px 40px
+    oklch(0% 0 0 / 0.34);
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-inset: var(--inset);
+  --color-hover: var(--hover);
+  --color-ground: var(--ground);
+  --color-ground-sub: var(--ground-sub);
+  --color-ground-deep: var(--ground-deep);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-quiet: var(--accent-quiet);
+  --color-on-accent: var(--on-accent);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --radius-lg: var(--r-in);
+}
+
+/* --------------------------------------------------------------- base */
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--page);
+}
+
+body {
+  background-color: var(--page);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--t-md);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* paper grain: fixed, multiply, never in the way */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: url("/grain.png") 0 0 / 160px 160px;
+  opacity: 0.038;
+  mix-blend-mode: multiply;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body::after {
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+  }
+}
+[data-theme="dark"] body::after {
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--accent-tint);
+  color: var(--ink);
+}
+
+/* a soft on-brand ring drawn as an outline, so it follows whatever radius the
+   element already has and never replaces the hairline underneath it */
+:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--accent) 52%, transparent);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------- helpers */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.measure {
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+/* the one type scale, as classes, because Tailwind cannot tell a bare
+   var() font-size from a colour and silently drops it */
+.t-xl {
+  font-size: var(--t-xl);
+}
+.t-lg {
+  font-size: var(--t-lg);
+}
+.t-sm {
+  font-size: var(--t-sm);
+}
+.t-xs {
+  font-size: var(--t-xs);
+}
+
+/* the version, always: a quiet pixel token, never a pill */
+.ver {
+  font-family: var(--font-pixel);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.86em;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+}
+
+.hair {
+  box-shadow: inset 0 0 0 1px var(--hair);
+}
+.hair-t {
+  box-shadow: inset 0 1px 0 0 var(--hair);
+}
+.hair-b {
+  box-shadow: inset 0 -1px 0 0 var(--hair);
+}
+
+.mark {
+  display: inline-block;
+  line-height: 0;
+  color: var(--ink);
+  font-size: var(--mark);
+}
+.mark svg {
+  display: block;
+  height: 1em;
+  width: auto;
+}
+
+/* A quiet scrollable slab for long verbatim text (the job, the workflow). */
+.slab {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  line-height: 1.7;
+  white-space: pre;
+  overflow: auto;
+  overscroll-behavior: contain;
+  tab-size: 2;
+}
+.slab-wrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.slab::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.slab::-webkit-scrollbar-thumb {
+  background: var(--hair-strong);
+  border-radius: 999px;
+}
+.slab::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* --------------------------------------------------------------- controls */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  height: 2.4em;
+  padding: 0 1.05em;
+  border-radius: var(--r-ctl);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform var(--t-fast) var(--ease),
+    background-color var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease),
+    opacity var(--t-fast) var(--ease);
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.btn-primary:hover {
+  background: color-mix(in oklch, var(--accent), black 8%);
+}
+.btn-quiet {
+  background: var(--inset);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.btn-quiet:hover {
+  background: var(--hover);
+}
+/* the least loud control there is: a word that happens to act */
+.btn-bare {
+  height: auto;
+  padding: 0.2em 0;
+  font-size: var(--t-xs);
+  font-weight: 400;
+  color: var(--ink-3);
+  background: none;
+}
+.btn-bare:hover {
+  color: var(--ink);
+}
+.btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+/* a word in a sentence that happens to act: no box, no height, just an
+   underline that answers on hover */
+.btn-link {
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+  font-weight: 400;
+  color: var(--ink);
+  background: none;
+  text-decoration: underline;
+  text-decoration-color: var(--hair-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition:
+    text-decoration-color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
+}
+.btn-link:hover {
+  text-decoration-color: var(--ink-3);
+}
+.btn .swap {
+  display: inline-grid;
+}
+.btn .swap > span {
+  grid-area: 1/1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  transition:
+    opacity var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
+}
+.btn .swap > span.b {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.btn.is-done .swap > span.a {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.btn.is-done .swap > span.b {
+  opacity: 1;
+  transform: none;
+}
+
+.quiet-link {
+  color: var(--ink-3);
+  transition: color var(--t-fast) var(--ease);
+}
+.quiet-link:hover {
+  color: var(--ink);
+}
+
+/* a standalone navigation link reads as one; the inline caption actions
+   ("Open", "Release notes") sit where an action is expected and stay bare */
+.text-link {
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--t-fast) var(--ease);
+}
+.text-link:hover {
+  text-decoration-color: var(--ink-3);
+}
+
+.accent-link {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklch, var(--accent) 40%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--t-fast) var(--ease);
+}
+.accent-link:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* --------------------------------------------------------------- the sheet
+   One kit, in focus: the only pure-white surface on the page. */
+.kit {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+  padding: 28px 28px 24px;
+  overflow: hidden;
+}
+.kit > * {
+  position: relative;
+}
+.kit-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4em 1em;
+  font-size: var(--t-sm);
+  color: var(--ink-3);
+}
+.kit-head {
+  margin-top: 0.42em;
+  font-size: var(--t-xl);
+}
+.kit-head em {
+  font-style: normal;
+  color: var(--accent-ink);
+}
+.kit-made {
+  margin-top: 0.85em;
+  font-size: var(--t-md);
+  color: var(--ink-2);
+}
+.kit-made b {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* --------------------------------------------------------------- the media
+   Rendered visuals sit together on one soft inset canvas, so the white sheet
+   never has to hold a picture by itself. */
+.media {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+  padding: 12px;
+  border-radius: var(--r-in);
+  background: var(--card-2);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+}
+.media.solo {
+  grid-template-columns: 1fr;
+}
+.media figure {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+.media figure.wide {
+  grid-column: 1 / -1;
+}
+.media figcaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0 2px;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--r-in) - 2px);
+  background: var(--stage);
+  box-shadow: var(--shadow-lift);
+}
+.frame img,
+.frame video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.frame-wide {
+  aspect-ratio: 1200 / 630;
+}
+/* a render that failed states it and steps aside; it never keeps the space
+   the picture would have had */
+.frame.is-failed {
+  aspect-ratio: auto;
+  min-height: 96px;
+  background: var(--inset);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.frame.is-failed .frame-hold {
+  position: static;
+  background: none;
+  padding: 20px 1.4em;
+  color: var(--ink-2);
+}
+.frame.is-failed .frame-hold p {
+  color: var(--ink-2);
+}
+.frame-tall {
+  aspect-ratio: 9 / 16;
+  max-width: 220px;
+}
+.frame-hold {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 1.2em;
+  text-align: center;
+  background: var(--stage);
+  color: var(--on-stage);
+}
+.frame-hold p {
+  max-width: 32ch;
+  font-size: var(--t-xs);
+  line-height: 1.5;
+  color: var(--on-stage-2);
+}
+.frame-hold b {
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--on-stage);
+}
+
+/* the poster sits on top until there is a real frame underneath, so a cut
+   arrives as a fade rather than a black flash */
+.frame-still {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+  transition: opacity var(--t-slow) var(--ease);
+}
+.frame-still[data-gone] {
+  opacity: 0;
+}
+
+/* the one film long enough to ask before it plays: its own first frame, and a
+   single quiet word over it */
+.frame-cue {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 14px;
+  cursor: pointer;
+  background: linear-gradient(
+    to top,
+    oklch(0% 0 0 / 0.44),
+    oklch(0% 0 0 / 0.1) 40%,
+    oklch(0% 0 0 / 0) 64%
+  );
+  transition: opacity var(--t) var(--ease);
+}
+/* the word is a pill in the same control language as every other button on
+   the page; the whole frame is the target, the pill is only where it reads */
+.frame-cue b {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  height: 2.4em;
+  padding: 0 1.05em;
+  border-radius: var(--r-ctl);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--on-stage);
+  background: oklch(0% 0 0 / 0.5);
+  backdrop-filter: blur(8px) saturate(1.3);
+  box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 0.14);
+  transition:
+    background-color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
+}
+.frame-cue i {
+  display: block;
+  width: 0;
+  height: 0;
+  border-left: 9px solid currentColor;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  transition: transform var(--t) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .frame-cue:hover b {
+    background: oklch(0% 0 0 / 0.62);
+  }
+  .frame-cue:hover i {
+    transform: translateX(2px);
+  }
+}
+.frame-cue:active b {
+  transform: scale(0.97);
+}
+
+/* the tall cut is the only portrait thing in a landscape tray, so it takes the
+   whole row and stands its label beside it rather than leaving a hole */
+.media figure.tall {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 14px;
+}
+.media figure.tall .frame {
+  flex: 0 0 auto;
+  width: 200px;
+}
+.media figure.tall figcaption {
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  gap: 1.2em;
+  padding-bottom: 2px;
+}
+
+/* the pixel loader: nine squares breathing, the only looping motion here */
+.px {
+  display: grid;
+  grid-template-columns: repeat(3, 4px);
+  gap: 1.5px;
+}
+.px i {
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--on-stage);
+  opacity: 0.15;
+  animation: pixel-on 1.8s linear infinite;
+}
+.px i:nth-child(1) {
+  animation-delay: 0s;
+}
+.px i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.px i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+.px i:nth-child(6) {
+  animation-delay: 0.6s;
+}
+.px i:nth-child(9) {
+  animation-delay: 0.8s;
+}
+.px i:nth-child(8) {
+  animation-delay: 1s;
+}
+.px i:nth-child(7) {
+  animation-delay: 1.2s;
+}
+.px i:nth-child(4) {
+  animation-delay: 1.4s;
+}
+.px i:nth-child(5) {
+  animation-delay: 1.6s;
+}
+@keyframes pixel-on {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  18%,
+  42% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0.15;
+  }
+}
+
+/* --------------------------------------------------------------- the words */
+.words {
+  display: flex;
+  flex-direction: column;
+}
+.w {
+  margin-top: 22px;
+  padding-top: 22px;
+  box-shadow: inset 0 1px 0 0 var(--line);
+}
+.w-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+.w-head h2 {
+  font-size: var(--t-lg);
+}
+.w-body {
+  margin-top: 12px;
+}
+.copy-text {
+  white-space: pre-wrap;
+  font-size: var(--t-md);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  list-style: none;
+}
+.thread li {
+  display: grid;
+  grid-template-columns: 1.7em 1fr;
+  gap: 0.5em;
+}
+.thread .n {
+  padding-top: 0.35em;
+  font-family: var(--font-pixel);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.thread .row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.notes {
+  margin-top: 26px;
+  padding-top: 18px;
+  box-shadow: inset 0 1px 0 0 var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.notes b {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* --------------------------------------------------------------- earlier */
+.stack {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 60px;
+  cursor: pointer;
+  text-align: left;
+}
+.stack i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: block;
+  height: 100%;
+  background: var(--card);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--t) var(--ease);
+}
+.stack i:nth-child(1) {
+  transform: translateY(-14px) scale(0.94);
+  opacity: 0.55;
+}
+.stack i:nth-child(2) {
+  transform: translateY(-7px) scale(0.97);
+  opacity: 0.8;
+}
+.stack i:nth-child(3) {
+  transform: none;
+}
+.stack:hover i:nth-child(1) {
+  transform: translateY(-18px) scale(0.94);
+}
+.stack:hover i:nth-child(2) {
+  transform: translateY(-9px) scale(0.97);
+}
+.stack .lbl {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0 24px;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.stack .lbl span:last-child {
+  color: var(--ink-3);
+}
+
+.release {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.2em;
+  padding: 16px 24px;
+  background: var(--card);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+  transition:
+    transform var(--t-fast) var(--ease),
+    background-color var(--t-fast) var(--ease);
+}
+.release:hover {
+  background: var(--card-2);
+}
+.release:active {
+  transform: scale(0.995);
+}
+.release .l {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+}
+.release .l b {
+  font-weight: 500;
+  color: var(--ink);
+}
+.release .l span {
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.release .r {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8em;
+  flex-shrink: 0;
+  font-size: var(--t-sm);
+  color: var(--ink-3);
+}
+
+/* --------------------------------------------------------------- motion */
+.rv {
+  animation: rise var(--t-slow) var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .rv {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------- phone */
+@media (max-width: 720px) {
+  :root {
+    --mark: 24px;
+  }
+  .kit {
+    padding: 20px 18px 18px;
+  }
+  .media {
+    grid-template-columns: 1fr;
+    padding: 8px;
+    gap: 8px;
+  }
+  .frame-tall {
+    max-width: 100%;
+  }
+  /* on one column the tall cut has the width to itself again */
+  .media figure.tall {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .media figure.tall .frame {
+    width: 100%;
+  }
+  .release {
+    padding: 14px 18px;
+  }
+  .stack .lbl {
+    padding: 0 18px;
+  }
+  .thread li {
+    grid-template-columns: 1.4em 1fr;
+  }
+  .thread .row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2em;
+  }
+  .stack .lbl span:last-child {
+    display: none;
+  }
+}
+
+/* ======================================================== the front door
+   Narrative. One reading column, 660 px wide, centred on the paper: the
+   sentence, the film, how a release becomes a kit, the rest of the kit,
+   three things to start, the sign-off. Nothing sits beside anything; the
+   page reads top to bottom like a letter.
+
+   Stance: calm, exact, warm, alive once. Calm is the single column, the
+   hairlines and three inks; exact is tabular figures and a mono version
+   tag; warm is one temperature in both themes; alive is the fold rising
+   once on load and each section rising once as it is reached, then
+   nothing moves again.
+   ==================================================================== */
+.fd {
+  --col: 660px;
+  --r-media: 12px;
+  --r-btn: 6px;
+  --line-soft: color-mix(in oklab, var(--ink) 8%, transparent);
+  --lift: 0 1px 2px color-mix(in oklab, var(--ink) 9%, transparent),
+    0 16px 38px -18px color-mix(in oklab, var(--ink) 30%, transparent);
+  --glass-top: transparent;
+  --t-fold-1: clamp(33px, 1.6rem + 1.9vw, 50px);
+  --t-fold-2: clamp(24px, 1.2rem + 0.9vw, 29px);
+  --t-fold-lede: clamp(17px, 1rem + 0.25vw, 19px);
+  font-size: 16px;
+  line-height: 1.62;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fd {
+    --glass-top: oklch(100% 0 0 / 0.07);
+    --lift: 0 1px 2px oklch(0% 0 0 / 0.4), 0 18px 44px -18px oklch(0% 0 0 / 0.6);
+  }
+}
+[data-theme="dark"] .fd {
+  --glass-top: oklch(100% 0 0 / 0.07);
+  --lift: 0 1px 2px oklch(0% 0 0 / 0.4), 0 18px 44px -18px oklch(0% 0 0 / 0.6);
+}
+.fd-col {
+  width: min(var(--col), 100% - 48px);
+  margin-inline: auto;
+}
+
+/* --------------------------------------------------------------- header */
+.fd-top {
+  position: relative;
+  z-index: 20;
+  padding-top: 30px;
+}
+.fd-top .fd-col {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.fd-mark {
+  display: block;
+  color: var(--ink);
+}
+.fd-mark svg {
+  display: block;
+  height: 32px;
+  width: auto;
+}
+.fd-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 13px;
+  letter-spacing: 0.004em;
+}
+.fd-nav a,
+.fd-nav button {
+  color: var(--ink-2);
+  text-decoration: none;
+  padding-bottom: 2px;
+  box-shadow: inset 0 -1px 0 transparent;
+  transition:
+    color 160ms var(--ease),
+    box-shadow 160ms var(--ease);
+}
+.fd-nav a:hover,
+.fd-nav button:hover {
+  color: var(--ink);
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+
+/* --------------------------------------------- type scale: 50 29 19 16 13 */
+.fd-h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-fold-1);
+  line-height: 1.12;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.fd-h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-fold-2);
+  line-height: 1.24;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.fd-lede {
+  margin: 0;
+  font-size: var(--t-fold-lede);
+  line-height: 1.58;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.fd-cap {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+}
+.fd-cap .v {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+.fd-hot {
+  color: var(--accent);
+}
+.fd-say {
+  color: var(--ink);
+  font-weight: 500;
+}
+.fd code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* ----------------------------------------------------------------- fold */
+.fd-fold {
+  padding-top: 44px;
+}
+.fd-fold .fd-lede {
+  margin-top: 20px;
+  max-width: 28.5em;
+}
+.fd-frame {
+  position: relative;
+  border-radius: var(--r-media);
+  overflow: hidden;
+  background: oklch(15% 0.006 60);
+  box-shadow: var(--lift), inset 0 1px 0 var(--glass-top);
+}
+.fd-fold .fd-frame {
+  margin-top: 30px;
+}
+.fd-frame video,
+.fd-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.fd-frame .fd-still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 420ms var(--ease);
+}
+.fd-frame .fd-still[data-gone] {
+  opacity: 0;
+  pointer-events: none;
+}
+.fd-fold .fd-cap {
+  margin-top: 12px;
+}
+
+/* the fold rises once on load; the default state is visible, JS never
+   gates it, and reduced motion gets the resting frame */
+.fd-fold .fd-col > * {
+  animation: fd-rise 580ms var(--ease) both;
+  animation-delay: calc(80ms + var(--i, 0) * 90ms);
+}
+@keyframes fd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* -------------------------------------------------------------- sequence */
+.fd-seq,
+.fd-kit,
+.fd-start {
+  padding-top: 52px;
+}
+.fd-beats {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 33.5em;
+}
+.fd-beats li {
+  box-shadow: inset 0 1px 0 var(--line-soft);
+}
+.fd-beats li:first-child {
+  box-shadow: none;
+}
+/* the claim is the row: a full-width button with a small plus that turns
+   into a cross when the paragraph is out */
+.fd-beat {
+  appearance: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  margin: 0;
+  padding: 12px 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.fd-beat .fd-say {
+  line-height: 1.5;
+}
+.fd-plus {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 999px;
+  color: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition:
+    transform 240ms var(--ease),
+    color 160ms var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .fd-beat:hover .fd-plus {
+    color: var(--ink);
+  }
+}
+.fd-beats li.is-open .fd-plus {
+  transform: rotate(45deg);
+  color: var(--ink);
+}
+.fd-unfold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 260ms var(--ease);
+}
+.fd-beats li.is-open .fd-unfold {
+  grid-template-rows: 1fr;
+}
+.fd-unfold-in {
+  overflow: hidden;
+  min-height: 0;
+}
+.fd-unfold p {
+  margin: 0;
+  padding: 0 40px 18px 0;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+/* ------------------------------------------------------------------- kit */
+.fd-kit .fd-lede {
+  margin-top: 12px;
+  max-width: 28.5em;
+}
+.fd-plate {
+  margin-top: 34px;
+  border-radius: var(--r-media);
+  overflow: hidden;
+  box-shadow: var(--lift), inset 0 1px 0 var(--glass-top);
+}
+.fd-plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.fd-plate.fd-tall {
+  width: min(240px, 100%);
+}
+.fd-plate.fd-tall video,
+.fd-plate.fd-tall .fd-still {
+  aspect-ratio: 9 / 16;
+}
+.fd-platecap {
+  margin-top: 14px;
+}
+.fd-pieces {
+  margin-top: 40px;
+}
+.fd-piece {
+  padding: 22px 0;
+  max-width: 33.5em;
+  box-shadow: inset 0 1px 0 var(--line-soft);
+}
+.fd-piece:first-child {
+  padding-top: 0;
+  box-shadow: none;
+}
+.fd-piece:last-child {
+  padding-bottom: 0;
+}
+.fd-piece h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.004em;
+  color: var(--ink);
+}
+.fd-piece p {
+  margin: 0;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.fd-piece p + p {
+  margin-top: 11px;
+  padding-top: 11px;
+  box-shadow: inset 0 1px 0 var(--line-soft);
+}
+
+
+/* ----------------------------------------------------------- the switcher */
+.fd-switch {
+  margin-top: 20px;
+}
+.fd-tabs {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  padding-bottom: 10px;
+  box-shadow: inset 0 -1px 0 var(--line-soft);
+}
+.fd-tabs button {
+  appearance: none;
+  margin: 0;
+  padding: 4px 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color 160ms var(--ease);
+}
+.fd-tabs button:hover,
+.fd-tabs button.is-on {
+  color: var(--ink);
+}
+.fd-tabmark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--mw, 0px);
+  height: 2px;
+  background: var(--accent);
+  transform: translate(var(--mx, 0px), var(--my, 0px));
+  opacity: 0;
+  transition:
+    transform 220ms var(--ease),
+    width 220ms var(--ease),
+    opacity 160ms var(--ease);
+}
+.fd-tabmark[data-ready] {
+  opacity: 1;
+}
+.fd-panel {
+  margin-top: 18px;
+  animation: fd-fade 220ms var(--ease) both;
+}
+@keyframes fd-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fd-panel .fd-plate {
+  margin-top: 0;
+}
+.fd-portrait {
+  display: flex;
+  align-items: flex-end;
+  gap: 22px;
+}
+.fd-portrait .fd-cap {
+  max-width: 18em;
+  padding-bottom: 4px;
+}
+/* prose panels hold a bounded height and scroll inside themselves, with a
+   fade at the foot so the cut is never a hard edge */
+.fd-text {
+  max-height: 300px;
+  max-width: 33.5em;
+  overflow-y: auto;
+  padding-right: 8px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 44px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 44px), transparent);
+  scrollbar-width: thin;
+}
+.fd-text p {
+  margin: 0;
+  color: var(--ink-2);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.fd-text:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--accent) 52%, transparent);
+  outline-offset: 2px;
+}
+.fd-text p + p {
+  margin-top: 11px;
+  padding-top: 11px;
+  box-shadow: inset 0 1px 0 var(--line-soft);
+}
+.fd-text p:last-child {
+  padding-bottom: 44px;
+}
+
+/* ----------------------------------------------------------------- start */
+.fd-steps {
+  margin-top: 16px;
+}
+.fd-step {
+  padding: 14px 0;
+  max-width: 33.5em;
+  box-shadow: inset 0 1px 0 var(--line-soft);
+}
+.fd-step:first-child {
+  padding-top: 0;
+  box-shadow: none;
+}
+.fd-step h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.4;
+  letter-spacing: -0.006em;
+  color: var(--ink);
+}
+.fd-step p {
+  margin: 10px 0 0;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.fd-row {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.fd-mins {
+  font-size: 13px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+/* the three actions are one cluster: one radius, one height, one accent */
+.fd .btn {
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--r-btn);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.004em;
+}
+.fd .btn-link {
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+}
+.fd-mint .btn-quiet {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: none;
+}
+.fd-mint .btn-quiet:hover {
+  background: color-mix(in oklab, var(--accent) 88%, var(--ink));
+}
+.fd-mint .fd-row > div {
+  width: 100%;
+}
+.fd-tokenfield {
+  border-radius: var(--r-btn);
+  background: var(--inset);
+  box-shadow: inset 0 0 0 1px var(--hair);
+}
+.fd-minted {
+  animation: fd-rise 240ms var(--ease) both;
+}
+.fd-agent {
+  margin: 18px 0 0;
+  padding-top: 16px;
+  max-width: 33.5em;
+  font-size: 16px;
+  color: var(--ink-3);
+  box-shadow: inset 0 1px 0 var(--line-soft);
+}
+
+/* ---------------------------------------------------------------- footer */
+.fd-foot {
+  margin-top: 40px;
+  padding-bottom: 28px;
+}
+.fd-sign {
+  margin: 0;
+  max-width: 16em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-fold-2);
+  line-height: 1.28;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.fd-legal {
+  margin-top: 24px;
+  padding-top: 16px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 13px;
+  color: var(--ink-3);
+  box-shadow: inset 0 1px 0 var(--line);
+}
+.fd-legal-links {
+  display: flex;
+  gap: 18px;
+}
+.fd-legal a {
+  color: var(--ink-3);
+  text-decoration: none;
+  box-shadow: inset 0 -1px 0 transparent;
+  transition:
+    color 160ms var(--ease),
+    box-shadow 160ms var(--ease);
+}
+.fd-legal a:hover {
+  color: var(--ink);
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+
+/* ------------------------------------------------- reveal, once, on reach */
+.fd-veil {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 580ms var(--ease),
+    transform 580ms var(--ease);
+}
+.fd-veil.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ----------------------------------------------------------------- phone */
+@media (max-width: 820px) {
+  .fd-col {
+    width: calc(100% - 40px);
+  }
+  .fd-fold {
+    padding-top: 70px;
+  }
+  .fd-fold .fd-frame {
+    margin-top: 32px;
+  }
+  .fd-seq,
+  .fd-kit,
+  .fd-start {
+    padding-top: 84px;
+  }
+  .fd-step h3 {
+    font-size: 17px;
+  }
+  .fd .btn:not(.btn-link) {
+    width: 100%;
+    justify-content: center;
+  }
+  .fd-row {
+    gap: 12px;
+  }
+  .fd-foot {
+    margin-top: 96px;
+  }
+  .fd-legal {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .fd-nav {
+    gap: 16px;
+  }
+  .fd-portrait {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .fd-tabs {
+    gap: 2px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fd-fold .fd-col > *,
+  .fd-minted,
+  .fd-panel {
+    animation: none;
+  }
+  .fd-unfold,
+  .fd-tabmark,
+  .fd-plus {
+    transition: none;
+  }
+  .fd-veil,
+  .fd-veil.in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------ the theme toggle's word
+   The toggle names the page you would land in, and the word is chosen here
+   from the same three conditions the palette uses, so nothing hydrates. */
+.fd-quiet {
+  font: inherit;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color 160ms var(--ease);
+}
+.fd-quiet:hover {
+  color: var(--ink);
+}
+.theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: var(--ink-2);
+}
+.theme-toggle:hover {
+  color: var(--ink);
+}
+.theme-toggle span {
+  display: none;
+  line-height: 0;
+}
+.theme-toggle .theme-dark {
+  display: inline;
+}
+.theme-light {
+  display: none;
+}
+.theme-dark {
+  display: inline;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-dark {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .theme-light {
+    display: inline;
+  }
+}
+[data-theme="dark"] .theme-dark {
+  display: none;
+}
+[data-theme="dark"] .theme-light {
+  display: inline;
+}
+[data-theme="light"] .theme-dark {
+  display: inline;
+}
+[data-theme="light"] .theme-light {
+  display: none;
+}
+
+/* ------------------------------------------------------ pages and curtains
+   Every page is its own sheet of paper. The one being read pins at the top;
+   the next slides up over it like a curtain, and the pinned one eases back
+   underneath (smaller, dimmer, drifting up more slowly than the sheet that
+   covers it). The flow height is unchanged, so the page stays short. */
+html {
+  scroll-behavior: smooth;
+}
+.fd-curtain .fd-page[data-pin] {
+  position: sticky;
+  top: 0;
+  background: var(--page);
+  isolation: isolate;
+}
+.fd-curtain .fd-seq {
+  z-index: 2;
+}
+.fd-curtain .fd-kit {
+  z-index: 3;
+}
+.fd-curtain .fd-start {
+  z-index: 4;
+}
+.fd-curtain .fd-foot {
+  z-index: 5;
+}
+.fd-curtain .fd-page + .fd-page {
+  border-radius: 22px 22px 0 0;
+  box-shadow:
+    0 -1px 0 var(--line-soft),
+    0 -28px 70px -40px oklch(0% 0 0 / 0.35);
+}
+.fd-curtain .fd-page > .fd-col {
+  transform: translateY(calc(var(--p, 0) * -48px)) scale(calc(1 - var(--p, 0) * 0.035));
+  transform-origin: 50% 0;
+  opacity: calc(1 - var(--p, 0) * 0.55);
+  will-change: transform, opacity;
+}
+.fd-curtain .fd-fold {
+  padding-bottom: 24px;
+}
+.fd-curtain .fd-seq,
+.fd-curtain .fd-kit,
+.fd-curtain .fd-start {
+  padding-bottom: 28px;
+}
+.fd-curtain .fd-foot {
+  padding-top: 32px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

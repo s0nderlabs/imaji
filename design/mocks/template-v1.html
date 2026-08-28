@@ -1,0 +1,392 @@
+<title>imaji mock studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Cal+Sans&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:"Open Sauce One";font-weight:400;src:url("{{OS400}}") format("truetype");font-display:swap}
+@font-face{font-family:"Open Sauce One";font-weight:500;src:url("{{OS500}}") format("truetype");font-display:swap}
+@font-face{font-family:"Open Sauce One";font-weight:600;src:url("{{OS600}}") format("truetype");font-display:swap}
+
+/* ------------------------------------------------------------------ tokens */
+:root{
+  --accent:#e2583e; --accent-ink:#fff; --accent-quiet:rgba(226,88,62,.12);
+  --paper:#fbfaf7; --paper-2:#f4f2ed; --paper-3:#ebe8e1; --card:#fff;
+  --ink:#1c1917; --ink-2:#57534e; --ink-3:#8d867e;
+  --hair:rgba(28,25,23,.1); --hair-2:rgba(28,25,23,.18);
+  --ok:#3f7d52; --warn:#9a6a13;
+  --panel:#1c1917; --panel-ink:#f3efe8; --panel-ink-2:#a8a097; --panel-hair:rgba(243,239,232,.12);
+  --font-body:Geist,Inter,system-ui,sans-serif;
+  --font-display:var(--font-body); --display-weight:500; --display-track:-.012em; --display-style:normal;
+  --font-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --base:15px; --r:10px; --sp:1; --rail:264px; --measure:62ch;
+  --sep:1px solid var(--hair);
+  --shadow:0 1px 2px rgba(28,25,23,.05),0 8px 24px rgba(28,25,23,.06);
+}
+:root[data-paper="cool"]{--paper:#fafafa;--paper-2:#f3f3f3;--paper-3:#e9e9e9;--ink:#18181b;--ink-2:#52525b;--ink-3:#8a8a93;--hair:rgba(24,24,27,.1);--hair-2:rgba(24,24,27,.18)}
+:root[data-paper="white"]{--paper:#fff;--paper-2:#f6f5f2;--paper-3:#eceae5}
+:root[data-theme="dark"]{--paper:#171412;--paper-2:#1f1b18;--paper-3:#28231f;--card:#1f1b18;--ink:#f3efe8;--ink-2:#b7aea3;--ink-3:#8d867e;--hair:rgba(243,239,232,.11);--hair-2:rgba(243,239,232,.2);--accent-quiet:rgba(226,88,62,.18);--ok:#7fb98f;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="dark"][data-paper="cool"]{--paper:#141416;--paper-2:#1c1c1f;--paper-3:#242428;--card:#1c1c1f}
+:root[data-theme="dark"][data-paper="white"]{--paper:#0f0e0d;--paper-2:#191715;--paper-3:#221f1c;--card:#191715}
+
+:root[data-font="opensauce"]{--font-body:"Open Sauce One",Inter,system-ui,sans-serif}
+:root[data-font="inter"]{--font-body:Inter,system-ui,sans-serif}
+:root[data-font="instrument"]{--font-body:"Instrument Sans",Inter,system-ui,sans-serif}
+:root[data-display="calsans"]{--font-display:"Cal Sans",var(--font-body);--display-weight:400;--display-track:0}
+:root[data-display="serif"]{--font-display:"Instrument Serif",Georgia,serif;--display-weight:400;--display-track:0}
+:root[data-display="tight"]{--font-display:var(--font-body);--display-weight:600;--display-track:-.03em}
+:root[data-scale="14"]{--base:14px}:root[data-scale="16"]{--base:16px}
+:root[data-radius="6"]{--r:6px}:root[data-radius="14"]{--r:14px}
+:root[data-density="compact"]{--sp:.8}:root[data-density="airy"]{--sp:1.25}
+:root[data-grid="dashed"]{--sep:1px dashed var(--hair-2)}
+:root{--mark-rail:30px;--mark-head:28px}
+:root[data-mark="s"]{--mark-rail:24px;--mark-head:22px}
+:root[data-mark="l"]{--mark-rail:40px;--mark-head:34px}
+
+/* ------------------------------------------------------------------ base */
+*{box-sizing:border-box;margin:0}
+html{background:var(--paper)}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:var(--base);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:active{transform:scale(.97)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--font-mono)}
+.num{font-variant-numeric:tabular-nums}
+.measure{max-width:var(--measure);text-wrap:pretty}
+.mark{display:inline-block;color:var(--ink);line-height:0}
+.mark svg{height:1em;width:auto;display:block}
+.mark svg .dot{fill:var(--accent)}
+
+h1,h2,h3{font-family:var(--font-display);font-weight:var(--display-weight);letter-spacing:var(--display-track);text-wrap:balance;line-height:1.12}
+h1 em,h2 em{font-style:var(--display-style);color:var(--accent)}
+:root[data-display="serif"] h1 em{font-style:italic}
+.kicker{font-family:var(--font-mono);font-size:.74em;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.sec-num{font-family:var(--font-mono);font-size:.8em;color:var(--ink-3);letter-spacing:.06em}
+
+.btn{display:inline-flex;align-items:center;gap:8px;height:2.4em;padding:0 1em;border-radius:calc(var(--r) - 2px);font-weight:500;font-size:.93em;transition:background .15s cubic-bezier(.23,1,.32,1)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{background:color-mix(in oklch,var(--accent),black 8%)}
+.btn.ghost{box-shadow:inset 0 0 0 1px var(--hair-2);color:var(--ink)}
+.btn.ghost:hover{background:var(--paper-2)}
+.chip{display:inline-flex;align-items:center;height:1.75em;padding:0 .6em;border-radius:calc(var(--r) - 4px);font-family:var(--font-mono);font-size:.78em;color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--hair-2)}
+.chip.on{color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-quiet)}
+.file{font-family:var(--font-mono);font-size:.78em;color:var(--ink-3)}
+.slab{font-family:var(--font-mono);font-size:.8em;line-height:1.55;color:var(--ink-2);background:var(--paper-2);border-radius:var(--r);padding:1em 1.1em;overflow:auto;max-height:15em;white-space:pre;box-shadow:inset 0 0 0 1px var(--hair)}
+.slab.wrap{white-space:pre-wrap}
+.hair-t{border-top:var(--sep)}
+dl.secrets{display:flex;flex-direction:column;gap:.45em}
+dl.secrets div{display:flex;gap:1em;align-items:baseline;flex-wrap:wrap}
+dl.secrets dt{font-family:var(--font-mono);font-size:.82em;color:var(--ink);min-width:12em}
+dl.secrets dd{font-size:.9em;color:var(--ink-3)}
+.field{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.field input{font:inherit;font-family:var(--font-mono);font-size:.85em;height:2.4em;padding:0 .9em;border:0;border-radius:calc(var(--r) - 2px);background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 1px var(--hair-2);min-width:19em}
+.rows{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:1.5em;padding:calc(1em*var(--sp)) .6em;margin:0 -.6em;border-top:var(--sep);border-radius:var(--r);transition:background .15s}
+.row:hover{background:var(--paper-2)}
+.row .l{display:flex;flex-direction:column;gap:.3em;min-width:0}
+.row .tag{font-family:var(--font-mono);font-size:.95em;color:var(--ink)}
+.row .t{font-size:.93em;color:var(--ink-2)}
+.row .r{display:flex;gap:.4em;align-items:center;flex-shrink:0}
+.row .d{font-family:var(--font-mono);font-size:.78em;color:var(--ink-3);margin-left:.6em}
+
+/* ------------------------------------------------------------------ shell */
+.shell{min-height:100vh}
+.main{width:100%;max-width:760px;padding:calc(48px*var(--sp)) 32px calc(96px*var(--sp))}
+.hero{padding:calc(24px*var(--sp)) 0 calc(56px*var(--sp))}
+.hero h1{font-size:2.6em;margin-top:.55em}
+.hero .lede{font-size:1.12em;color:var(--ink-2);margin-top:1em}
+.sec{padding:calc(40px*var(--sp)) 0}
+.sec-h{display:flex;align-items:baseline;gap:.8em}
+.sec-h h2{font-size:1.5em}
+.sec .body{margin-top:calc(16px*var(--sp));display:flex;flex-direction:column;gap:calc(14px*var(--sp))}
+.sec p{color:var(--ink-2)}
+.sec p.q{color:var(--ink-3);font-size:.9em}
+.foot{padding:calc(40px*var(--sp)) 0 0;border-top:var(--sep);display:flex;justify-content:space-between;gap:1em;flex-wrap:wrap;color:var(--ink-3);font-size:.86em}
+.foot .sentence{color:var(--ink-2)}
+.nav-links{display:flex;gap:1.2em;font-size:.93em;color:var(--ink-2)}
+.nav-links a:hover{color:var(--ink)}
+.themebtn{display:inline-flex;align-items:center;justify-content:center;width:2em;height:2em;border-radius:99px;box-shadow:inset 0 0 0 1px var(--hair-2);color:var(--ink-2)}
+.themebtn svg{width:1em;height:1em}
+
+/* rail */
+[data-layout="rail"] .shell{display:grid;grid-template-columns:var(--rail) 1fr}
+[data-layout="rail"] .rail{position:sticky;top:0;height:100vh;padding:calc(40px*var(--sp)) 28px calc(28px*var(--sp));border-right:var(--sep);display:flex;flex-direction:column;gap:calc(28px*var(--sp))}
+[data-layout="rail"] .rail .mark{font-size:var(--mark-rail)}
+[data-layout="rail"] .rail .tag{font-size:.95em;color:var(--ink-2);text-wrap:pretty}
+[data-layout="rail"] .rail nav{display:flex;flex-direction:column;gap:.15em;padding-top:calc(20px*var(--sp));border-top:var(--sep)}
+[data-layout="rail"] .rail nav .h{font-size:.8em;color:var(--ink-3);margin-bottom:.6em}
+[data-layout="rail"] .rail nav a{display:flex;gap:.7em;align-items:baseline;padding:.32em .5em;margin:0 -.5em;border-radius:calc(var(--r) - 4px);font-size:.93em;color:var(--ink-2)}
+[data-layout="rail"] .rail nav a:hover{color:var(--ink);background:var(--paper-2)}
+[data-layout="rail"] .rail nav a.on{color:var(--ink)}
+[data-layout="rail"] .rail nav a .sec-num{min-width:1.6em}
+[data-layout="rail"] .rail .rf{margin-top:auto;display:flex;flex-direction:column;gap:.9em;font-size:.86em;color:var(--ink-3)}
+[data-layout="rail"] .rail .rf .sentence{color:var(--ink-2);text-wrap:pretty}
+[data-layout="rail"] .rail .rf .links{display:flex;gap:1em;align-items:center}
+[data-layout="rail"] .topbar,[data-layout="rail"] .single-head,[data-layout="rail"] .foot{display:none}
+[data-layout="rail"] .main{margin:0}
+
+/* single scroll */
+[data-layout="single"] .rail,[data-layout="single"] .topbar{display:none}
+[data-layout="single"] .main{margin:0 auto;max-width:720px}
+.single-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:calc(8px*var(--sp))}
+.single-head .mark{font-size:var(--mark-head)}
+.single-head .right{display:flex;gap:1.2em;align-items:center}
+
+/* top bar */
+[data-layout="topbar"] .rail,[data-layout="topbar"] .single-head{display:none}
+[data-layout="topbar"] .topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:14px 32px;border-bottom:var(--sep);background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4)}
+[data-layout="topbar"] .topbar .mark{font-size:var(--mark-head)}
+[data-layout="topbar"] .topbar .right{display:flex;gap:1.4em;align-items:center}
+[data-layout="topbar"] .main{margin:0 auto}
+.topbar{display:none}
+
+/* pages */
+.page{display:none}
+[data-page="home"] #p-home,[data-page="kit"] #p-kit,[data-page="kits"] #p-kits{display:block}
+.crumb{display:inline-flex;align-items:center;gap:.4em;font-family:var(--font-mono);font-size:.74em;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.crumb:hover{color:var(--ink)}
+.kit-h h1{font-size:2.2em;margin-top:.7em}
+.kit-h .meta{display:flex;flex-wrap:wrap;gap:.7em;align-items:center;margin-top:1em;font-size:.9em;color:var(--ink-3)}
+.kit-h .meta .v{font-family:var(--font-mono);color:var(--ink-2)}
+.kit-h .meta a{color:var(--accent);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 40%,transparent);text-underline-offset:4px}
+.kit-h .sub{font-size:1.05em;color:var(--ink-2);margin-top:1em}
+.kit-h .chips{display:flex;gap:.4em;flex-wrap:wrap;margin-top:1.1em}
+.block{padding:calc(32px*var(--sp)) 0;border-top:var(--sep)}
+.block-h{display:flex;justify-content:space-between;align-items:center;gap:1em}
+.block-h h2{font-family:var(--font-mono);font-weight:400;font-size:.74em;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);letter-spacing:.12em}
+.block-h .act{font-family:var(--font-mono);font-size:.74em;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.block-h .act:hover{color:var(--ink)}
+.block .body{margin-top:calc(16px*var(--sp))}
+.card-img{border-radius:var(--r);overflow:hidden;box-shadow:inset 0 0 0 1px var(--hair)}
+.card-img img{width:100%;display:block;aspect-ratio:1200/630;object-fit:cover}
+.film{position:relative;border-radius:var(--r);overflow:hidden;aspect-ratio:16/9;background:#171412}
+.film img{width:100%;height:100%;object-fit:cover;display:block;opacity:.7}
+.film .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.film .play span{display:inline-flex;align-items:center;gap:.6em;background:rgba(23,20,18,.6);color:#f3efe8;padding:.6em 1em;border-radius:99px;font-size:.9em;backdrop-filter:blur(8px)}
+.film .play svg{width:1em;height:1em}
+.film .st{position:absolute;left:14px;bottom:12px;font-family:var(--font-mono);font-size:.74em;color:#b7aea3}
+.tweet{font-size:1.05em;white-space:pre-wrap;color:var(--ink)}
+.count{font-family:var(--font-mono);font-size:.78em;color:var(--ink-3);margin-top:.8em}
+.thread{display:flex;flex-direction:column;gap:0}
+.thread li{list-style:none;display:grid;grid-template-columns:2em 1fr;gap:.6em;padding:.9em 0;border-top:var(--sep)}
+.thread li:first-child{border-top:0;padding-top:0}
+.thread li .n{font-family:var(--font-mono);font-size:.8em;color:var(--ink-3);padding-top:.25em}
+.thread li p{color:var(--ink)}
+.li p{color:var(--ink);margin-top:.9em}.li p:first-child{margin-top:0}
+.skipped{display:flex;flex-direction:column;gap:.5em}
+.skipped li{list-style:none;display:flex;gap:.7em;color:var(--ink-2);font-size:.95em}
+.skipped li::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--ink-3);flex-shrink:0;margin-top:.6em}
+.memory{padding:1em 1.1em;border-radius:var(--r);background:var(--paper-2);box-shadow:inset 0 0 0 1px var(--hair);color:var(--ink-2);font-size:.95em}
+.memory b{font-weight:500;color:var(--ink)}
+
+/* ------------------------------------------------------------------ controls */
+.ctl{position:fixed;right:18px;bottom:18px;z-index:50;width:272px;max-height:calc(100vh - 36px);overflow:auto;background:var(--panel);color:var(--panel-ink);border-radius:14px;box-shadow:0 2px 4px rgba(0,0,0,.2),0 18px 48px rgba(0,0,0,.35);font-family:Geist,Inter,system-ui,sans-serif;font-size:12.5px;line-height:1.4;padding:14px 14px 12px}
+.ctl.min{width:auto;max-height:none;overflow:hidden;padding:0}
+.ctl.min>*:not(.ctl-h){display:none}
+.ctl.min .ctl-h{padding:9px 12px;margin:0}
+.ctl-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ctl-h b{font-weight:500;letter-spacing:.02em}
+.ctl-h button{color:var(--panel-ink-2);font-size:12px}
+.ctl-g{padding:9px 0;border-top:1px solid var(--panel-hair)}
+.ctl-g .l{display:flex;justify-content:space-between;color:var(--panel-ink-2);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px}
+.seg{display:flex;gap:3px;flex-wrap:wrap}
+.seg button{padding:4px 8px;border-radius:6px;color:var(--panel-ink-2);box-shadow:inset 0 0 0 1px var(--panel-hair);font-size:12px}
+.seg button:hover{color:var(--panel-ink)}
+.seg button.on{background:var(--panel-ink);color:var(--panel)}
+.ctl .acc{display:flex;gap:8px;align-items:center}
+.ctl input[type=color]{width:26px;height:22px;border:0;background:none;padding:0}
+.ctl input[type=text]{font:12px "Geist Mono",monospace;width:84px;height:24px;padding:0 8px;border:0;border-radius:6px;background:rgba(255,255,255,.06);color:var(--panel-ink);box-shadow:inset 0 0 0 1px var(--panel-hair)}
+.ctl-f{display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--panel-hair);margin-top:4px}
+.ctl-f button{flex:1;padding:6px 8px;border-radius:7px;box-shadow:inset 0 0 0 1px var(--panel-hair);color:var(--panel-ink);font-size:12px}
+.ctl-f button.p{background:var(--accent);color:#fff;box-shadow:none}
+.ctl .cfg{font:10.5px/1.5 "Geist Mono",monospace;color:var(--panel-ink-2);margin-top:8px;word-break:break-all;display:none}
+.ctl .cfg.show{display:block}
+
+@media (max-width:900px){[data-layout="rail"] .shell{grid-template-columns:1fr}[data-layout="rail"] .rail{position:static;height:auto;border-right:0;border-bottom:var(--sep)}[data-layout="rail"] .rail .rf{margin-top:0}.main{padding-left:20px;padding-right:20px}.ctl{width:calc(100vw - 36px)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="shell">
+  <!-- rail (layout=rail) -->
+  <aside class="rail">
+    <a class="mark" href="#" aria-label="imaji">{{MARK}}</a>
+    <p class="tag">One release in, a whole launch kit out. Your Mind writes it; imaji renders.</p>
+    <nav>
+      <div class="h">On this page</div>
+      <a href="#s1" class="on"><span class="sec-num">01</span>Hand your Mind the job</a>
+      <a href="#s2"><span class="sec-num">02</span>Drop the workflow in</a>
+      <a href="#s3"><span class="sec-num">03</span>Mint a kit token</a>
+      <a href="#s4"><span class="sec-num">04</span>It ran, for real</a>
+    </nav>
+    <div class="rf">
+      <p class="sentence">For developers who ship real things and refuse to become content creators.</p>
+      <div class="links"><a href="#" data-go="kits">Your kits</a><a href="#">GitHub</a><button class="themebtn" data-act="theme" aria-label="Toggle theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3.2"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/></svg></button></div>
+      <span>Apache-2.0 · s0nderlabs</span>
+    </div>
+  </aside>
+
+  <!-- top bar (layout=topbar) -->
+  <header class="topbar">
+    <a class="mark" href="#" aria-label="imaji">{{MARK}}</a>
+    <div class="right nav-links"><a href="#" data-go="home">Home</a><a href="#" data-go="kits">Your kits</a><a href="#">GitHub</a><button class="themebtn" data-act="theme" aria-label="Toggle theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3.2"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/></svg></button></div>
+  </header>
+
+  <main class="main">
+    <!-- single-scroll header -->
+    <div class="single-head">
+      <a class="mark" href="#" aria-label="imaji">{{MARK}}</a>
+      <div class="right nav-links"><a href="#" data-go="kits">Your kits</a><a href="#">GitHub</a><button class="themebtn" data-act="theme" aria-label="Toggle theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3.2"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/></svg></button></div>
+    </div>
+
+    <!-- ============================================================ HOME -->
+    <section class="page" id="p-home">
+      <div class="hero">
+        <p class="kicker">One release in, a whole launch kit out</p>
+        <h1>A developer who ships is a creator whose content is <em>code</em>.</h1>
+        <p class="lede measure">imaji turns each release into the posts, the card and the film they never had time to make. Your own Mind writes them, remembering every release before this one. imaji only renders.</p>
+      </div>
+
+      <section class="sec hair-t" id="s1">
+        <div class="sec-h"><span class="sec-num">01</span><h2>Hand your Mind the job</h2></div>
+        <div class="body">
+          <p class="measure">Paste this once into a chat with your own Mind. It is the whole job: what a kit is, the JSON to answer with, how to call the renderer, and when to skip a release and say why.</p>
+          <div class="field"><button class="btn primary">Copy the job</button><span class="file">job/JOB.md</span></div>
+          <pre class="slab wrap">{{JOB}}</pre>
+        </div>
+      </section>
+
+      <section class="sec hair-t" id="s2">
+        <div class="sec-h"><span class="sec-num">02</span><h2>Drop the workflow in your repo</h2></div>
+        <div class="body">
+          <p class="measure">Save it as <span class="file" style="color:var(--ink)">.github/workflows/imaji.yml</span>. Two jobs: <b style="font-weight:500;color:var(--ink)">onboard</b>, which lets your Mind read the repo once and propose your brand, and <b style="font-weight:500;color:var(--ink)">release</b>, which runs every time you tag one.</p>
+          <div class="field"><button class="btn primary">Copy the workflow</button><span class="file">templates/imaji.yml</span></div>
+          <pre class="slab">{{WORKFLOW}}</pre>
+          <dl class="secrets">
+            <div><dt>MINDS_API_KEY</dt><dd>your Builder API key, from build.hellominds.ai</dd></div>
+            <div><dt>MIND_ID</dt><dd>your Mind’s id, lowercase</dd></div>
+            <div><dt>IMAJI_KIT_TOKEN</dt><dd>the token you mint below</dd></div>
+          </dl>
+          <p class="q measure">Three repository secrets. Nothing else to configure: you set the brand by talking to your Mind. Run onboarding once by hand: Actions, imaji, Run workflow, set <span class="file">job</span> to <span class="file">onboard</span>.</p>
+        </div>
+      </section>
+
+      <section class="sec hair-t" id="s3">
+        <div class="sec-h"><span class="sec-num">03</span><h2>Mint a kit token</h2></div>
+        <div class="body">
+          <p class="measure">The only credential imaji issues. It authorises posting a kit and belongs in your repository secrets; your kit pages live at a read id derived from it, so a kit link is safe to share.</p>
+          <div class="field"><input type="text" readonly value="f3XD…B4 · shown once" aria-label="kit token"><button class="btn primary">Mint a token</button><button class="btn ghost">Copy</button></div>
+          <p class="q">Shown once. Kits for it appear at <span class="file">/k/9b67acb83bf6c255a882cd82</span>.</p>
+        </div>
+      </section>
+
+      <section class="sec hair-t" id="s4">
+        <div class="sec-h"><span class="sec-num">04</span><h2>It ran, for real</h2></div>
+        <div class="body">
+          <p class="measure">imaji announced imaji. The Mind <span style="color:var(--ink)">imaji.labs</span> took the job, was onboarded from this repository’s own README and CSS tokens, then handled two releases through the workflow’s exact path, posting each kit on its own.</p>
+          <div class="rows">
+            <a class="row" href="#" data-go="kit"><span class="l"><span class="tag">v0.2.0</span><span class="t">Every release gets a film</span></span><span class="r"><span class="chip on">film</span><span class="chip">card</span><span class="chip">x</span><span class="chip">linkedin</span><span class="d num">28 Aug 2026</span></span></a>
+            <a class="row" href="#"><span class="l"><span class="tag">v0.1.0</span><span class="t">imaji ships the card and the private kit page</span></span><span class="r"><span class="chip">card</span><span class="chip">x</span><span class="chip">linkedin</span><span class="d num">28 Aug 2026</span></span></a>
+            <a class="row" href="#"><span class="l"><span class="tag">onboarding</span><span class="t">The Mind proposed the brand and rendered a sample card</span></span><span class="r"><span class="chip">card</span><span class="d num">28 Aug 2026</span></span></a>
+          </div>
+        </div>
+      </section>
+
+      <footer class="foot"><span class="sentence">For developers who ship real things and refuse to become content creators.</span><span>Apache-2.0 · s0nderlabs · <a href="#">GitHub</a></span></footer>
+    </section>
+
+    <!-- ============================================================ KIT -->
+    <section class="page" id="p-kit">
+      <div class="kit-h">
+        <a class="crumb" href="#" data-go="kits"><svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 2.4 3.6 6l3.6 3.6"/></svg>All kits</a>
+        <h1>Every release gets a <em>film</em></h1>
+        <div class="meta"><span class="v">v0.2.0</span><span>·</span><span class="mono">s0nderlabs/imaji</span><span>·</span><span class="mono num">28 Aug 2026</span><span>·</span><a href="#">Release notes</a></div>
+        <p class="sub measure">Ten seconds, on brand, rendered from HTML by your own Mind.</p>
+        <div class="chips"><span class="chip">x</span><span class="chip">linkedin</span><span class="chip">card</span><span class="chip">film</span><span class="chip">editorial</span></div>
+      </div>
+
+      <section class="block"><div class="block-h"><h2>Card</h2><a class="act" href="#">Open full size</a></div><div class="body"><div class="card-img"><img src="{{CARD}}" alt="Every release gets a film, v0.2.0 card"></div></div></section>
+      <section class="block"><div class="block-h"><h2>Film</h2><a class="act" href="#">Open the file</a></div><div class="body"><div class="film"><img src="{{CARD}}" alt=""><div class="play"><span><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>Play</span></div><span class="st">10 s · 1920 × 1080 · rendered in 12 s</span></div></div></section>
+      <section class="block"><div class="block-h"><h2>Tweet</h2><button class="btn primary">Copy</button></div><div class="body"><p class="tweet measure">imaji v0.2.0: your Mind now renders a 10-second film for every release, not just the card. Tag a release, get the kit. No prompts, no content calendar.</p><p class="count num">157 / 280</p></div></section>
+      <section class="block"><div class="block-h"><h2>Thread</h2><button class="btn primary">Copy thread</button></div><div class="body"><ol class="thread">
+        <li><span class="n">1</span><p>v0.2.0 is out. What changed: the film. Every release now gets a 10-second launch video rendered from HTML, on brand, deterministic, no diffusion model guessing at your logo.</p></li>
+        <li><span class="n">2</span><p>How it works: you tag a release, a GitHub Action wakes your own Mind, the Mind reads the notes, remembers your last release, writes the copy and calls imaji to render the visuals.</p></li>
+        <li><span class="n">3</span><p>Building on v0.1.0, which shipped the card and the private kit page. Next: the Bazaar listing so any Mind can take the job. imaji.s0nderlabs.xyz</p></li>
+      </ol></div></section>
+      <section class="block"><div class="block-h"><h2>LinkedIn</h2><button class="btn primary">Copy</button></div><div class="body li measure"><p>We shipped imaji v0.2.0.</p><p>Every release your team tags now comes back as a full launch kit: a tweet, a thread, this post, a social card and a 10-second film. Your own Mind writes it, remembering every release before it. imaji only renders.</p><p>For developers who ship real things and refuse to become content creators.</p></div></section>
+      <section class="block"><div class="block-h"><h2>Skipped, on purpose</h2></div><div class="body"><ul class="skipped"><li>two small fixes are mentioned in the release notes but do not earn a beat: long card headlines now step down in size, and literal newlines in Mind copy render as paragraphs</li></ul></div></section>
+      <section class="block"><div class="block-h"><h2>What your Mind will remember</h2></div><div class="body"><div class="memory measure"><b>v0.2.0 builds on v0.1.0</b> of s0nderlabs/imaji by making the film real: 1920×1080, ten seconds, four beats, rendered frame by frame from HTML, queued right after the card. Kit index at /k/… lists every kit, newest first.</div></div></section>
+    </section>
+
+    <!-- ============================================================ KITS -->
+    <section class="page" id="p-kits">
+      <div class="kit-h"><h1>Kits</h1><p class="sub measure"><span style="color:var(--ink)">s0nderlabs/imaji</span>. 3 releases, newest first.</p></div>
+      <div class="rows" style="margin-top:calc(24px*var(--sp))">
+        <a class="row" href="#" data-go="kit"><span class="l"><span class="tag">v0.2.0</span><span class="t">Every release gets a film</span></span><span class="r"><span class="chip on">film</span><span class="chip">card</span><span class="chip">x</span><span class="chip">linkedin</span><span class="d num">28 Aug 2026</span></span></a>
+        <a class="row" href="#"><span class="l"><span class="tag">v0.1.0</span><span class="t">imaji ships the card and the private kit page</span></span><span class="r"><span class="chip">card</span><span class="chip">x</span><span class="chip">linkedin</span><span class="d num">28 Aug 2026</span></span></a>
+        <a class="row" href="#"><span class="l"><span class="tag">onboarding</span><span class="t">The Mind proposed the brand and rendered a sample card</span></span><span class="r"><span class="chip">card</span><span class="d num">28 Aug 2026</span></span></a>
+      </div>
+      <footer class="foot" style="margin-top:calc(48px*var(--sp))"><span class="sentence">Tag a release. The next kit shows up here on its own.</span><span>Apache-2.0 · s0nderlabs</span></footer>
+    </section>
+  </main>
+</div>
+
+<!-- ============================================================ CONTROLS -->
+<div class="ctl" id="ctl">
+  <div class="ctl-h"><b>imaji mock controls</b><button id="min" aria-label="Minimise">hide</button></div>
+  <div class="ctl-g"><div class="l"><span>Page</span></div><div class="seg" data-k="page"><button data-v="home">Home</button><button data-v="kit">Kit</button><button data-v="kits">Kits</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Layout</span></div><div class="seg" data-k="layout"><button data-v="rail">Left rail</button><button data-v="single">Single scroll</button><button data-v="topbar">Top bar</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Theme</span><span>Paper</span></div><div class="seg" data-k="theme" style="float:left;margin-right:10px"><button data-v="light">Light</button><button data-v="dark">Dark</button></div><div class="seg" data-k="paper"><button data-v="warm">Warm</button><button data-v="cool">Cool</button><button data-v="white">White</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Type, body and UI</span></div><div class="seg" data-k="font"><button data-v="geist">Geist</button><button data-v="opensauce">Open Sauce</button><button data-v="inter">Inter</button><button data-v="instrument">Instrument</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Type, headings</span></div><div class="seg" data-k="display"><button data-v="same">Same as body</button><button data-v="tight">Tight, heavier</button><button data-v="calsans">Cal Sans</button><button data-v="serif">Instrument Serif</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Scale</span><span>Density</span></div><div class="seg" data-k="scale" style="float:left;margin-right:10px"><button data-v="14">14</button><button data-v="15">15</button><button data-v="16">16</button></div><div class="seg" data-k="density"><button data-v="compact">Compact</button><button data-v="regular">Regular</button><button data-v="airy">Airy</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Wordmark size</span></div><div class="seg" data-k="mark"><button data-v="s">Small</button><button data-v="m">Medium</button><button data-v="l">Large</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Radius</span><span>Rules</span></div><div class="seg" data-k="radius" style="float:left;margin-right:10px"><button data-v="6">6</button><button data-v="10">10</button><button data-v="14">14</button></div><div class="seg" data-k="grid"><button data-v="solid">Solid</button><button data-v="dashed">Dashed</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Accent</span><span>locked: Tigerlily</span></div><div class="acc"><input type="color" id="acc" value="#e2583e"><input type="text" id="acchex" value="#e2583e" spellcheck="false"><button class="seg-reset" id="accreset" style="color:var(--panel-ink-2);font-size:12px">reset</button></div></div>
+  <div class="ctl-f"><button id="reset">Reset</button><button class="p" id="copy">Copy config</button></div>
+  <div class="cfg" id="cfg"></div>
+</div>
+
+<script>
+const KEYS = ['page','layout','theme','paper','font','display','scale','density','radius','grid','mark'];
+const DEF = { page:'home', layout:'rail', theme:'light', paper:'warm', font:'geist', display:'same', scale:'15', density:'regular', radius:'10', grid:'solid', mark:'m', accent:'#e2583e' };
+const root = document.documentElement;
+let state = { ...DEF };
+try { Object.assign(state, JSON.parse(localStorage.getItem('imaji-mock') || '{}')) } catch {}
+if (location.hash.length > 2) { try { Object.assign(state, JSON.parse(decodeURIComponent(location.hash.slice(1)))) } catch {} }
+
+function render() {
+  for (const k of KEYS) root.dataset[k] = state[k];
+  root.style.setProperty('--accent', state.accent);
+  root.style.setProperty('--accent-quiet', hexA(state.accent, state.theme === 'dark' ? .18 : .12));
+  document.querySelectorAll('.seg').forEach(seg => {
+    const k = seg.dataset.k;
+    seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === state[k]));
+  });
+  document.getElementById('acc').value = state.accent; document.getElementById('acchex').value = state.accent;
+  document.getElementById('cfg').textContent = JSON.stringify(state);
+  try { localStorage.setItem('imaji-mock', JSON.stringify(state)) } catch {}
+  history.replaceState(null, '', '#' + encodeURIComponent(JSON.stringify(state)));
+  window.scrollTo(0, 0);
+}
+function hexA(h, a) { const n = parseInt(h.slice(1), 16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})` }
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { state[b.parentElement.dataset.k] = b.dataset.v; render() }));
+document.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); state.page = a.dataset.go; render() }));
+document.querySelectorAll('[data-act="theme"]').forEach(b => b.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; render() }));
+document.getElementById('acc').addEventListener('input', e => { state.accent = e.target.value; render() });
+document.getElementById('acchex').addEventListener('change', e => { let v = e.target.value.trim(); if (!v.startsWith('#')) v = '#' + v; if (/^#[0-9a-f]{6}$/i.test(v)) { state.accent = v.toLowerCase(); render() } });
+document.getElementById('accreset').addEventListener('click', () => { state.accent = DEF.accent; render() });
+document.getElementById('reset').addEventListener('click', () => { state = { ...DEF }; render() });
+document.getElementById('copy').addEventListener('click', async () => {
+  const text = 'imaji mock config: ' + JSON.stringify(state);
+  try { await navigator.clipboard.writeText(text) } catch {}
+  const c = document.getElementById('cfg'); c.classList.add('show'); setTimeout(() => c.classList.remove('show'), 3000);
+});
+document.getElementById('min').addEventListener('click', () => { const c = document.getElementById('ctl'); c.classList.toggle('min'); document.getElementById('min').textContent = c.classList.contains('min') ? 'controls' : 'hide' });
+// rail nav highlight follows scroll on the home page
+const secs = [...document.querySelectorAll('#p-home .sec')];
+const links = [...document.querySelectorAll('.rail nav a')];
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) links.forEach(l => l.classList.toggle('on', l.getAttribute('href') === '#' + e.target.id)) }) }, { rootMargin: '-30% 0px -60% 0px' });
+  secs.forEach(s => io.observe(s));
+}
+render();
+</script>

@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en" data-page="home" data-layout="rail" data-theme="light" data-paper="warm" data-font="polysans" data-display="same" data-script="none" data-texture="hatch" data-glow="on" data-motion="full" data-scale="15" data-density="regular" data-radius="12" data-grid="dashed" data-mark="m" data-film="rendering">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>imaji mock studio</title>
+<link rel="icon" href="{{FAVICON}}">
+<style>
+/* ---------------------------------------------------------------- fonts (only the ones you sent) */
+@font-face{font-family:"PolySans";font-weight:300;src:url("{{PS300}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans";font-weight:400;src:url("{{PS400}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans";font-weight:500;src:url("{{PS500}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans";font-weight:700;src:url("{{PS700}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans Mono";font-weight:400;src:url("{{PSM400}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans Mono";font-weight:500;src:url("{{PSM500}}") format("opentype");font-display:swap}
+@font-face{font-family:"Die Grotesk";font-weight:300 700;src:url("{{DG}}") format("woff2");font-display:swap}
+@font-face{font-family:"Open Sauce One";font-weight:400;src:url("{{OS400}}") format("truetype");font-display:swap}
+@font-face{font-family:"Open Sauce One";font-weight:500;src:url("{{OS500}}") format("truetype");font-display:swap}
+@font-face{font-family:"Open Sauce One";font-weight:600;src:url("{{OS600}}") format("truetype");font-display:swap}
+@font-face{font-family:"Peace Sans";font-weight:400;src:url("{{PEACE}}") format("opentype");font-display:swap}
+@font-face{font-family:"Tempting";font-weight:400;src:url("{{TEMPTING}}") format("opentype");font-display:swap}
+@font-face{font-family:"Adventor";font-weight:400;src:url("{{ADV400}}") format("opentype");font-display:swap}
+@font-face{font-family:"Adventor";font-weight:700;src:url("{{ADV700}}") format("opentype");font-display:swap}
+@font-face{font-family:"Geist Pixel";font-weight:400;src:url("{{PIXEL}}") format("woff2");font-display:swap}
+
+/* ---------------------------------------------------------------- tokens */
+:root{
+  /* one warm temperature, held everywhere; oklch so both themes share the same ramps */
+  --page:oklch(98.2% .004 80); --canvas:oklch(96.4% .005 80); --surface:oklch(100% 0 0); --inset:oklch(97.6% .004 80); --hover:oklch(96.6% .005 80); --hover-2:oklch(93.4% .006 80);
+  --ink:oklch(24% .012 60); --ink-2:oklch(50% .012 60); --ink-3:oklch(68% .012 60);
+  --line:oklch(94% .006 80); --line-strong:oklch(90.5% .008 80); --line-soft:oklch(96.5% .004 80);
+  --field:oklch(96% .004 80);
+  --stripe:oklch(40% .01 60 / .075); --stripe-bg:oklch(97.2% .004 80);
+  --accent:oklch(64.5% .19 32); --accent-ink:oklch(56% .18 32); --accent-tint:oklch(95.8% .022 32); --on-accent:oklch(99% .005 80);
+  --green:oklch(60% .14 152); --green-tint:oklch(95.8% .02 152);
+  --shadow-hairline:0 0 0 1px var(--line);
+  --shadow-btn:0 0 0 1px var(--line-strong),0 0 4px 0 oklch(0% 0 0 / .04);
+  --shadow-card:0 0 0 1px var(--line),0 18px 47px 0 oklch(0% 0 0 / .03),0 7.5px 19px 0 oklch(0% 0 0 / .02),0 4px 10.5px 0 oklch(0% 0 0 / .02),0 2.3px 5.8px 0 oklch(0% 0 0 / .012),0 1.2px 3.1px 0 oklch(0% 0 0 / .012),0 .5px 1.3px 0 oklch(0% 0 0 / .012);
+  --shadow-inset-field:inset 0 1px 2px oklch(0% 0 0 / .1);
+  --font-body:"PolySans","Open Sauce One","Helvetica Neue",sans-serif;
+  --font-display:var(--font-body); --display-weight:500; --display-track:-.018em; --display-lh:1.08;
+  --font-mono:"PolySans Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --font-script:"Tempting",cursive;
+  --base:15px; --sp:1; --rail:264px; --measure:62ch;
+  --r-window:12px; --r-control:7px; --r-chip:6px;
+  --sep:1px dashed var(--line-strong);
+  --ease:cubic-bezier(.23,1,.32,1); --ease-io:cubic-bezier(.77,0,.175,1);
+  --t-fast:150ms; --t:220ms; --t-slow:420ms;
+  --mark-rail:30px; --mark-head:28px;
+}
+:root[data-paper="cool"]{--page:oklch(98.5% .001 286); --canvas:oklch(96.1% .002 248); --inset:oklch(97.9% .002 248); --hover:oklch(97% .002 248); --hover-2:oklch(93.3% .003 248); --ink:oklch(24.7% .006 258); --ink-2:oklch(50.6% .01 264); --ink-3:oklch(69.5% .009 264); --line:oklch(94.6% .003 264); --line-strong:oklch(91.2% .005 258); --line-soft:oklch(96.6% .002 264); --field:oklch(96.1% .001 286); --stripe-bg:oklch(97% 0 0)}
+:root[data-theme="dark"]{
+  --page:oklch(19.5% .008 60); --canvas:oklch(22.5% .008 60); --surface:oklch(25.5% .009 60); --inset:oklch(23.5% .008 60); --hover:oklch(27% .009 60); --hover-2:oklch(30% .01 60);
+  --ink:oklch(95% .008 80); --ink-2:oklch(74% .01 70); --ink-3:oklch(58% .01 65);
+  --line:oklch(30% .01 60); --line-strong:oklch(35% .012 60); --line-soft:oklch(27% .009 60);
+  --field:oklch(22% .008 60);
+  --stripe:oklch(90% .01 80 / .05); --stripe-bg:oklch(17.5% .008 60);
+  --accent-ink:oklch(74% .17 34); --accent-tint:oklch(30% .05 32); --on-accent:oklch(18% .02 32);
+  --green:oklch(72% .13 152); --green-tint:oklch(30% .04 152);
+  --shadow-card:0 0 0 1px var(--line),0 18px 47px 0 oklch(0% 0 0 / .35),0 7.5px 19px 0 oklch(0% 0 0 / .25),0 2.3px 5.8px 0 oklch(0% 0 0 / .2),inset 0 1px 0 oklch(100% 0 0 / .05);
+  --shadow-btn:0 0 0 1px var(--line-strong),0 0 4px 0 oklch(0% 0 0 / .3);
+}
+:root[data-theme="dark"][data-paper="cool"]{--page:oklch(19% .004 260); --canvas:oklch(22% .004 260); --surface:oklch(25% .005 260); --inset:oklch(23% .004 260); --hover:oklch(27% .005 260); --hover-2:oklch(30% .005 260); --line:oklch(30% .006 260); --line-strong:oklch(35% .006 260); --stripe-bg:oklch(17% .004 260)}
+
+:root[data-font="diegrotesk"]{--font-body:"Die Grotesk","Helvetica Neue",sans-serif}
+:root[data-font="opensauce"]{--font-body:"Open Sauce One","Helvetica Neue",sans-serif}
+:root[data-font="helvetica"]{--font-body:"Helvetica Neue",Helvetica,Arial,sans-serif}
+:root[data-display="peace"]{--font-display:"Peace Sans",var(--font-body);--display-weight:400;--display-track:-.005em;--display-lh:1.02}
+:root[data-display="adventor"]{--font-display:"Adventor",var(--font-body);--display-weight:400;--display-track:-.03em;--display-lh:1.05}
+:root[data-display="pixel"]{--font-display:"Geist Pixel",monospace;--display-weight:400;--display-track:0;--display-lh:1.1}
+:root[data-display="bulky"]{--font-display:"PolySans",var(--font-body);--display-weight:700;--display-track:-.03em}
+:root[data-scale="14"]{--base:14px}:root[data-scale="16"]{--base:16px}
+:root[data-radius="8"]{--r-window:8px;--r-control:5px;--r-chip:4px}:root[data-radius="16"]{--r-window:16px;--r-control:9px;--r-chip:7px}
+:root[data-density="compact"]{--sp:.8}:root[data-density="airy"]{--sp:1.25}
+:root[data-grid="solid"]{--sep:1px solid var(--line)}
+:root[data-mark="s"]{--mark-rail:24px;--mark-head:22px}:root[data-mark="l"]{--mark-rail:40px;--mark-head:34px}
+
+/* ---------------------------------------------------------------- base */
+*{box-sizing:border-box;margin:0}
+html{background:var(--stripe-bg)}
+body{background:var(--stripe-bg);color:var(--ink);font-family:var(--font-body);font-size:var(--base);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh;position:relative}
+/* the page sits on a hatched field, a sheet on a cutting mat */
+[data-texture="hatch"] body{background-image:repeating-linear-gradient(-45deg,var(--stripe) 0 1px,transparent 1px 7px)}
+[data-texture="dots"] body{background-image:radial-gradient(var(--line-strong) 1px,transparent 1.25px);background-size:14px 14px}
+/* paper grain: one tile, above everything, touching nothing */
+[data-texture="grain"] body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:40;background:url("{{GRAIN}}") 0 0/160px 160px;opacity:.05;mix-blend-mode:multiply}
+[data-texture="grain"][data-theme="dark"] body::after{mix-blend-mode:screen;opacity:.045}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button,.row,.nav a{transition:transform var(--t-fast) var(--ease),background-color var(--t-fast) var(--ease),color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+button:active{transform:scale(.97)}
+:focus-visible{outline:none;box-shadow:0 0 0 1px var(--page),0 0 0 3px color-mix(in oklch,var(--accent) 45%,transparent)!important;border-radius:var(--r-control)}
+.mono{font-family:var(--font-mono)}.num{font-variant-numeric:tabular-nums}
+.measure{max-width:var(--measure);text-wrap:pretty}
+.mark{display:inline-block;color:var(--ink);line-height:0}
+.mark svg{height:1em;width:auto;display:block}
+.mark svg .dot{fill:var(--accent)}
+h1,h2,h3{font-family:var(--font-display);font-weight:var(--display-weight);letter-spacing:var(--display-track);line-height:var(--display-lh);text-wrap:balance}
+h1 em,h2 em{font-style:normal;color:var(--accent-ink)}
+[data-script="tempting"] h1 em{font-family:var(--font-script);font-weight:400;font-size:1.18em;letter-spacing:0;line-height:.8;vertical-align:-.02em;padding-right:.08em}
+.kicker{font-family:var(--font-mono);font-size:.74em;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.sec-num{font-family:var(--font-mono);font-size:.78em;color:var(--ink-3);letter-spacing:.06em}
+
+/* controls */
+.btn{display:inline-flex;align-items:center;gap:.5em;height:2.35em;padding:0 .95em;border-radius:var(--r-control);font-weight:500;font-size:.93em;white-space:nowrap}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:color-mix(in oklch,var(--accent),black 7%)}
+.btn.ghost{background:var(--surface);box-shadow:var(--shadow-btn);color:var(--ink)}
+.btn.ghost:hover{background:var(--hover)}
+.btn .ic{width:1em;height:1em;display:block}
+.btn .swap{display:inline-grid}.btn .swap>span{grid-area:1/1;display:inline-flex;align-items:center;gap:.5em;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+.btn .swap>span.b{opacity:0;transform:translateY(4px)}
+.btn.done .swap>span.a{opacity:0;transform:translateY(-4px)}.btn.done .swap>span.b{opacity:1;transform:none}
+.chip{display:inline-flex;align-items:center;gap:.35em;height:1.75em;padding:0 .55em;border-radius:var(--r-chip);font-family:var(--font-mono);font-size:.78em;color:var(--ink-2);background:var(--field);box-shadow:var(--shadow-hairline)}
+.chip.on{color:var(--accent-ink);background:var(--accent-tint);box-shadow:0 0 0 1px color-mix(in oklch,var(--accent) 30%,transparent)}
+.chip .ic{width:.9em;height:.9em}
+.file{font-family:var(--font-mono);font-size:.78em;color:var(--ink-3)}
+.slab{position:relative;font-family:var(--font-mono);font-size:.8em;line-height:1.55;color:var(--ink-2);background:var(--canvas);border-radius:var(--r-window);padding:1em 1.1em 1.6em;overflow:hidden;max-height:14em;white-space:pre;box-shadow:var(--shadow-hairline);-webkit-mask-image:linear-gradient(#000 0,#000 calc(100% - 4rem),transparent 100%);mask-image:linear-gradient(#000 0,#000 calc(100% - 4rem),transparent 100%)}
+.slab.wrap{white-space:pre-wrap}
+.hair-t{border-top:var(--sep)}
+dl.secrets{display:flex;flex-direction:column;gap:.4em}
+dl.secrets div{display:flex;gap:1em;align-items:baseline;flex-wrap:wrap}
+dl.secrets dt{font-family:var(--font-mono);font-size:.82em;color:var(--ink);min-width:12em}
+dl.secrets dd{font-size:.9em;color:var(--ink-3)}
+.field{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.field input{font:inherit;font-family:var(--font-mono);font-size:.85em;height:2.35em;padding:0 .9em;border:0;border-radius:var(--r-control);background:var(--field);color:var(--ink);box-shadow:var(--shadow-inset-field),var(--shadow-hairline);min-width:19em}
+.rows{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:1.5em;padding:calc(1em*var(--sp)) .7em;margin:0 -.7em;border-top:var(--sep);border-radius:var(--r-control)}
+.row:hover{background:var(--hover)}
+.row .l{display:flex;flex-direction:column;gap:.3em;min-width:0}
+.row .tag{font-family:var(--font-mono);font-size:.95em;color:var(--ink)}
+.row .t{font-size:.93em;color:var(--ink-2)}
+.row .r{display:flex;gap:.35em;align-items:center;flex-shrink:0}
+.row .d{font-family:var(--font-mono);font-size:.78em;color:var(--ink-3);margin-left:.6em}
+
+/* ---------------------------------------------------------------- shell */
+.shell{max-width:1200px;margin:0 auto;min-height:100vh;background:var(--page);box-shadow:-1px 0 0 var(--line),1px 0 0 var(--line);position:relative}
+.main{width:100%;max-width:760px;padding:calc(48px*var(--sp)) 36px calc(96px*var(--sp));position:relative}
+.hero{position:relative;padding:calc(20px*var(--sp)) 0 calc(48px*var(--sp))}
+/* one warm glow, interpolated in oklch so the middle stays clean, under the hero only */
+[data-glow="on"] .hero::before{content:"";position:absolute;left:-40%;top:-50%;width:110%;height:150%;pointer-events:none;background:radial-gradient(closest-side in oklch,color-mix(in oklch,var(--accent) 17%,transparent),transparent 72%)}
+[data-glow="on"][data-theme="dark"] .hero::before{background:radial-gradient(closest-side in oklch,color-mix(in oklch,var(--accent) 22%,transparent),transparent 72%)}
+.hero>*{position:relative}
+.hero h1{font-size:2.7em;margin-top:.5em}
+.hero .lede{font-size:1.1em;color:var(--ink-2);margin-top:1em}
+.sec{padding:calc(40px*var(--sp)) 0}
+.sec-h{display:flex;align-items:baseline;gap:.8em}
+.sec-h h2{font-size:1.45em}
+.sec .body{margin-top:calc(16px*var(--sp));display:flex;flex-direction:column;gap:calc(14px*var(--sp))}
+.sec p{color:var(--ink-2)}.sec p.q{color:var(--ink-3);font-size:.9em}
+.foot{padding:calc(40px*var(--sp)) 0 0;border-top:var(--sep);display:flex;justify-content:space-between;gap:1em;flex-wrap:wrap;color:var(--ink-3);font-size:.86em}
+.foot .sentence{color:var(--ink-2)}
+.nav-links{display:flex;gap:1.2em;align-items:center;font-size:.93em;color:var(--ink-2)}
+.nav-links a:hover{color:var(--ink)}
+/* theme switch: pill with a sliding knob */
+.sw{position:relative;display:inline-flex;height:28px;padding:2px;border-radius:99px;background:var(--field);box-shadow:var(--shadow-hairline)}
+.sw .knob{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:99px;background:var(--surface);box-shadow:var(--shadow-btn);transition:transform var(--t) var(--ease)}
+[data-theme="dark"] .sw .knob{transform:translateX(24px)}
+.sw button{position:relative;z-index:1;width:24px;height:24px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-3)}
+.sw button svg{width:12px;height:12px}
+[data-theme="light"] .sw button.l,[data-theme="dark"] .sw button.d{color:var(--ink)}
+
+/* rail */
+[data-layout="rail"] .shell{display:grid;grid-template-columns:var(--rail) 1fr}
+[data-layout="rail"] .rail{position:sticky;top:0;height:100vh;padding:calc(40px*var(--sp)) 28px calc(28px*var(--sp));box-shadow:1px 0 0 var(--line);display:flex;flex-direction:column;gap:calc(26px*var(--sp))}
+[data-layout="rail"] .rail .mark{font-size:var(--mark-rail)}
+[data-layout="rail"] .rail .tag{font-size:.95em;color:var(--ink-2);text-wrap:pretty}
+.nav{position:relative;display:flex;flex-direction:column;gap:.1em;padding-top:calc(18px*var(--sp));border-top:var(--sep)}
+.nav .h{font-size:.8em;color:var(--ink-3);margin-bottom:.5em}
+.nav a{position:relative;z-index:1;display:flex;gap:.7em;align-items:baseline;padding:.34em .55em;margin:0 -.55em;border-radius:var(--r-control);font-size:.93em;color:var(--ink-2)}
+.nav a:hover,.nav a.on{color:var(--ink)}
+.nav a .sec-num{min-width:1.6em}
+.nav .glide{position:absolute;left:-.55em;right:-.55em;border-radius:var(--r-control);background:var(--hover);opacity:0;transition:top var(--t) var(--ease),height var(--t) var(--ease),opacity var(--t-fast)}
+.nav.hot .glide{opacity:1}
+[data-layout="rail"] .rail .rf{margin-top:auto;display:flex;flex-direction:column;gap:.9em;font-size:.86em;color:var(--ink-3)}
+[data-layout="rail"] .rail .rf .sentence{color:var(--ink-2);text-wrap:pretty}
+[data-layout="rail"] .rail .rf .links{display:flex;gap:1em;align-items:center}
+[data-layout="rail"] .topbar,[data-layout="rail"] .single-head,[data-layout="rail"] .foot{display:none}
+/* single */
+[data-layout="single"] .rail,[data-layout="single"] .topbar{display:none}
+[data-layout="single"] .main{margin:0 auto;max-width:720px}
+.single-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:calc(8px*var(--sp))}
+.single-head .mark{font-size:var(--mark-head)}
+/* top bar */
+[data-layout="topbar"] .rail,[data-layout="topbar"] .single-head{display:none}
+.topbar{display:none}
+[data-layout="topbar"] .topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:14px 36px;box-shadow:0 1px 0 var(--line);background:color-mix(in srgb,var(--page) 82%,transparent);backdrop-filter:blur(12px) saturate(1.5);-webkit-backdrop-filter:blur(12px) saturate(1.5)}
+[data-layout="topbar"] .topbar .mark{font-size:var(--mark-head)}
+[data-layout="topbar"] .main{margin:0 auto}
+
+/* ---------------------------------------------------------------- pages */
+.page{display:none}
+[data-page="home"] #p-home,[data-page="kit"] #p-kit,[data-page="kits"] #p-kits{display:block}
+.crumb{display:inline-flex;align-items:center;gap:.4em;font-family:var(--font-mono);font-size:.74em;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.crumb:hover{color:var(--ink)}
+.kit-h h1{font-size:2.2em;margin-top:.7em}
+.kit-h .meta{display:flex;flex-wrap:wrap;gap:.7em;align-items:center;margin-top:1em;font-size:.9em;color:var(--ink-3)}
+.kit-h .meta .v{font-family:var(--font-mono);color:var(--ink-2)}
+.kit-h .meta a{color:var(--accent-ink);text-decoration:underline;text-decoration-color:color-mix(in oklch,var(--accent) 40%,transparent);text-underline-offset:4px}
+.kit-h .sub{font-size:1.05em;color:var(--ink-2);margin-top:1em}
+.kit-h .chips{display:flex;gap:.4em;flex-wrap:wrap;margin-top:1.1em}
+.block{padding:calc(30px*var(--sp)) 0;border-top:var(--sep)}
+.block-h{display:flex;justify-content:space-between;align-items:center;gap:1em}
+.block-h h2{font-family:var(--font-mono);font-weight:400;font-size:.74em;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.block-h .act{font-family:var(--font-mono);font-size:.74em;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.block-h .act:hover{color:var(--ink)}
+.block .body{margin-top:calc(16px*var(--sp))}
+/* media sits on a dotted canvas, the demo-surface idea */
+.canvas{position:relative;border-radius:var(--r-window);padding:14px;background:var(--canvas);box-shadow:var(--shadow-hairline);background-image:radial-gradient(var(--line-strong) 1px,transparent 1.25px);background-size:12px 12px}
+.card-img{border-radius:calc(var(--r-window) - 4px);overflow:hidden;box-shadow:var(--shadow-card)}
+.card-img img{width:100%;display:block;aspect-ratio:1200/630;object-fit:cover}
+.film{position:relative;border-radius:calc(var(--r-window) - 4px);overflow:hidden;aspect-ratio:16/9;background:oklch(18% .008 60);box-shadow:var(--shadow-card)}
+.film img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity var(--t-slow) var(--ease),filter var(--t-slow) var(--ease)}
+.film .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity var(--t) var(--ease)}
+.film .play span{display:inline-flex;align-items:center;gap:.6em;background:oklch(20% .01 60 / .6);color:oklch(96% .01 80);padding:.55em 1em;border-radius:99px;font-size:.9em;backdrop-filter:blur(8px) saturate(1.4);-webkit-backdrop-filter:blur(8px) saturate(1.4)}
+.film .play svg{width:1em;height:1em}
+.film .st{position:absolute;left:14px;bottom:12px;font-family:var(--font-mono);font-size:.74em;color:oklch(75% .01 70)}
+/* film states, one machine: rendering / done / failed */
+.film .wait{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:oklch(18% .008 60);transition:opacity var(--t-slow) var(--ease)}
+[data-film="done"] .film .wait{opacity:0;pointer-events:none}
+[data-film="rendering"] .film img{opacity:0}[data-film="rendering"] .film .play,[data-film="rendering"] .film .st{opacity:0}
+[data-film="failed"] .film img{opacity:.25;filter:grayscale(1)}[data-film="failed"] .film .play,[data-film="failed"] .film .st{opacity:0}
+[data-film="failed"] .film .wait{background:oklch(18% .008 60 / .78);backdrop-filter:blur(6px) saturate(1.3);-webkit-backdrop-filter:blur(6px) saturate(1.3)}
+.film .wait .err{display:none;flex-direction:column;align-items:center;gap:6px;text-align:center}
+[data-film="failed"] .film .wait .loader{display:none}[data-film="failed"] .film .wait .err{display:flex}
+.film .wait .err b{font-family:var(--font-mono);font-weight:400;font-size:.8em;color:oklch(78% .14 24)}
+.film .wait .err span{font-size:.85em;color:oklch(75% .01 70);max-width:34ch}
+.film .wait .err button{margin-top:4px;color:oklch(96% .01 80);font-size:.85em;padding:.4em .8em;border-radius:99px;box-shadow:inset 0 0 0 1px oklch(100% 0 0 / .18)}
+/* the loading state: nine pixels, lit around the ring, a shimmering word, the clock */
+.loader{display:flex;align-items:center;gap:10px}
+.px{display:grid;grid-template-columns:repeat(3,4px);gap:1.5px}
+.px i{width:4px;height:4px;border-radius:1px;background:oklch(92% .01 80);opacity:.15;animation:pixel-on 1.8s linear infinite}
+.px i:nth-child(1){animation-delay:0s}.px i:nth-child(2){animation-delay:.2s}.px i:nth-child(3){animation-delay:.4s}.px i:nth-child(6){animation-delay:.6s}.px i:nth-child(9){animation-delay:.8s}.px i:nth-child(8){animation-delay:1s}.px i:nth-child(7){animation-delay:1.2s}.px i:nth-child(4){animation-delay:1.4s}.px i:nth-child(5){animation-delay:1.6s}
+.shimmer{font-size:.9em;font-weight:500;color:transparent;background:linear-gradient(90deg,oklch(65% .01 70) 35%,oklch(96% .01 80) 50%,oklch(65% .01 70) 65%) 150% center/200% auto;-webkit-background-clip:text;background-clip:text;animation:shimmer-text 1.6s linear infinite}
+.clock{font-family:var(--font-mono);font-size:.78em;color:oklch(62% .01 70);font-variant-numeric:tabular-nums}
+@keyframes pixel-on{0%,100%{opacity:.15}18%,42%{opacity:1}62%{opacity:.15}}
+@keyframes shimmer-text{0%{background-position:150% center}100%{background-position:-50% center}}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+@keyframes caret{0%,100%{opacity:1}50%{opacity:0}}
+/* thinking trace, expandable */
+.think{display:flex;flex-direction:column}
+.think>button{display:flex;align-items:center;gap:.5em;width:fit-content;padding:.3em .5em;margin:0 -.5em;border-radius:var(--r-control);font-size:.93em;font-weight:500;color:var(--ink-2)}
+.think>button:hover{background:var(--hover-2)}
+.think>button .chev{width:.9em;height:.9em;transition:transform var(--t) var(--ease);color:var(--ink-3)}
+.think.open>button .chev{transform:rotate(90deg)}
+.think>button .spark{width:1em;height:1em;color:var(--accent-ink)}
+.think .tr{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows var(--t-slow) var(--ease),opacity var(--t) var(--ease)}
+.think.open .tr{grid-template-rows:1fr;opacity:1}
+.think .tr>div{overflow:hidden}
+.think ol{position:relative;margin:.4em 0 0 .45em;padding:.2em 0 .2em 1.1em;list-style:none;display:flex;flex-direction:column;gap:.15em}
+.think ol::before{content:"";position:absolute;left:0;top:.4em;bottom:.4em;width:1px;background:var(--line-strong)}
+.think li{display:flex;align-items:center;gap:.6em;min-height:1.9em;font-size:.9em;color:var(--ink)}
+.think li .ic{width:.95em;height:.95em;color:var(--ink-3);flex-shrink:0}
+.think li .m{margin-left:auto;font-size:.85em;color:var(--ink-3);font-family:var(--font-mono)}
+/* task rows: the last run, live */
+.tasks{display:flex;flex-direction:column;gap:8px;margin-top:calc(28px*var(--sp))}
+.task{background:var(--surface);border-radius:var(--r-window);box-shadow:var(--shadow-card);overflow:hidden}
+.task>button{display:flex;align-items:center;gap:.7em;width:100%;height:2.9em;padding:0 .7em;text-align:left;border-radius:0}
+.task>button:hover{background:var(--inset)}
+.task>button:active{transform:none}
+.task .st{width:1.45em;height:1.45em;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.task .st.ok{background:var(--green);color:#fff}.task .st.ok svg{width:.75em;height:.75em}
+.task .st.run{position:relative}.task .st.run i{position:absolute;inset:.35em;border-radius:99px;background:var(--accent);animation:pulse 1.4s var(--ease-io) infinite}
+.task .ttl{flex:1;min-width:0;font-size:.93em;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task .who{font-size:.85em;color:var(--ink-2);font-family:var(--font-mono)}
+.task .pill{display:inline-flex;align-items:center;height:1.6em;padding:0 .6em;border-radius:99px;font-size:.78em;font-weight:500}
+.task .pill.ok{background:var(--green-tint);color:var(--green)}.task .pill.run{background:var(--accent-tint);color:var(--accent-ink)}
+.task .chev{width:.85em;height:.85em;color:var(--ink-3);transition:transform var(--t) var(--ease)}
+.task.open .chev{transform:rotate(180deg)}
+.task .dt{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--t-slow) var(--ease)}
+.task.open .dt{grid-template-rows:1fr}
+.task .dt>div{overflow:hidden}
+.task .dt ul{list-style:none;display:grid;grid-template-columns:1.45em 1fr;gap:.35em .7em;padding:0 .7em .8em;margin:0}
+.task .dt ul li{grid-column:2;display:flex;justify-content:space-between;gap:1em;font-size:.86em;color:var(--ink-2)}
+.task .dt ul li span{font-family:var(--font-mono);color:var(--ink-3);font-size:.9em}
+.task .dt ul::before{content:"";grid-column:1;grid-row:1/span 10;width:1px;justify-self:center;background:var(--line-strong)}
+/* streaming tweet */
+.tweet{font-size:1.05em;white-space:pre-wrap;color:var(--ink);min-height:3.2em}
+.tweet .caret{display:inline-block;width:.55em;height:1.05em;vertical-align:-.15em;margin-left:.1em;background:var(--accent);border-radius:1px;animation:caret 1s steps(1) infinite}
+.tweet.done .caret{display:none}
+.count{font-family:var(--font-mono);font-size:.78em;color:var(--ink-3);margin-top:.8em;display:flex;gap:1em;align-items:center}
+.count button{color:var(--ink-3);text-decoration:underline;text-underline-offset:3px}
+.count button:hover{color:var(--ink)}
+.thread{display:flex;flex-direction:column}
+.thread li{list-style:none;display:grid;grid-template-columns:2em 1fr;gap:.6em;padding:.9em 0;border-top:var(--sep)}
+.thread li:first-child{border-top:0;padding-top:0}
+.thread li .n{font-family:var(--font-mono);font-size:.8em;color:var(--ink-3);padding-top:.25em}
+.thread li p{color:var(--ink)}
+.li p{color:var(--ink);margin-top:.9em}.li p:first-child{margin-top:0}
+.skipped{display:flex;flex-direction:column;gap:.5em}
+.skipped li{list-style:none;display:flex;gap:.7em;color:var(--ink-2);font-size:.95em}
+.skipped li::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--ink-3);flex-shrink:0;margin-top:.6em}
+.memory{padding:1em 1.1em;border-radius:var(--r-window);background:var(--canvas);box-shadow:var(--shadow-hairline);color:var(--ink-2);font-size:.95em}
+.memory b{font-weight:500;color:var(--ink)}
+
+/* ---------------------------------------------------------------- motion */
+.rv{opacity:0;transform:translateY(8px);transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease);transition-delay:calc(var(--i,0)*40ms)}
+.rv.in{opacity:1;transform:none}
+[data-motion="calm"] .rv{transform:none;transition-delay:0ms}
+[data-motion="calm"] .px i,[data-motion="calm"] .shimmer,[data-motion="calm"] .task .st.run i{animation-duration:3s}
+[data-motion="calm"] button:active{transform:none}
+@media (prefers-reduced-motion:reduce){.rv{transform:none}}
+@media (hover:none){.nav .glide{display:none}}
+
+/* ---------------------------------------------------------------- controls panel */
+.ctl{position:fixed;right:18px;bottom:18px;z-index:60;width:280px;max-height:calc(100vh - 36px);overflow:auto;background:oklch(22% .01 60);color:oklch(94% .008 80);border-radius:14px;box-shadow:0 0 0 1px oklch(100% 0 0 / .08),0 2px 4px oklch(0% 0 0 / .3),0 18px 48px oklch(0% 0 0 / .45);font-family:"Open Sauce One","Helvetica Neue",sans-serif;font-size:12.5px;line-height:1.4;padding:14px 14px 12px}
+.ctl.min{width:auto;max-height:none;overflow:hidden;padding:0}
+.ctl.min>*:not(.ctl-h){display:none}
+.ctl.min .ctl-h{padding:9px 12px;margin:0}
+.ctl-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ctl-h b{font-weight:500}
+.ctl-h button{color:oklch(70% .01 70);font-size:12px}
+.ctl-g{padding:9px 0;border-top:1px solid oklch(100% 0 0 / .08)}
+.ctl-g .l{display:flex;justify-content:space-between;color:oklch(68% .01 70);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px}
+.ctl-g .l span:last-child:not(:first-child){text-transform:none;letter-spacing:0;color:oklch(58% .01 70)}
+.seg{display:flex;gap:3px;flex-wrap:wrap}
+.seg button{padding:4px 8px;border-radius:6px;color:oklch(72% .01 70);box-shadow:inset 0 0 0 1px oklch(100% 0 0 / .1);font-size:12px}
+.seg button:hover{color:oklch(94% .008 80)}
+.seg button.on{background:oklch(94% .008 80);color:oklch(22% .01 60);box-shadow:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two .l{margin-bottom:7px}
+.ctl-f{display:flex;gap:6px;padding-top:10px;border-top:1px solid oklch(100% 0 0 / .08);margin-top:4px}
+.ctl-f button{flex:1;padding:6px 8px;border-radius:7px;box-shadow:inset 0 0 0 1px oklch(100% 0 0 / .1);color:oklch(94% .008 80);font-size:12px}
+.ctl-f button.p{background:var(--accent);color:#fff;box-shadow:none}
+.ctl .cfg{font:10.5px/1.5 "PolySans Mono",ui-monospace,monospace;color:oklch(68% .01 70);margin-top:8px;word-break:break-all;display:none}
+.ctl .cfg.show{display:block}
+.ctl .note{font-size:11px;color:oklch(58% .01 70);margin-top:8px;line-height:1.45}
+@media (max-width:900px){[data-layout="rail"] .shell{grid-template-columns:1fr}[data-layout="rail"] .rail{position:static;height:auto;box-shadow:0 1px 0 var(--line)}[data-layout="rail"] .rail .rf{margin-top:0}.main{padding-left:22px;padding-right:22px}.ctl{width:calc(100vw - 36px)}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-down" viewBox="0 0 16 16"><path d="M3.5 6 8 10.5 12.5 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 16 16"><path d="M8 1.5c.4 3.4 2.6 5.6 6.5 6.5-3.9.9-6.1 3.1-6.5 6.5-.4-3.4-2.6-5.6-6.5-6.5C5.4 7.1 7.6 4.9 8 1.5z" fill="currentColor"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 16 16"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-mem" viewBox="0 0 16 16"><path d="M4 2.5h8a1 1 0 0 1 1 1v9l-5-2.5-5 2.5v-9a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 16 16"><path d="M2.5 13.5l.9-3.4 7.6-7.6a1.2 1.2 0 0 1 1.7 0l.8.8a1.2 1.2 0 0 1 0 1.7l-7.6 7.6-3.4.9z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.5 3 9h4l-1 5.5L13 7H9l0-5.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-back" viewBox="0 0 12 12"><path d="M7.2 2.4 3.6 6l3.6 3.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
+
+<div class="shell">
+  <aside class="rail">
+    <a class="mark rv" style="--i:0" href="#" aria-label="imaji">{{MARK}}</a>
+    <p class="tag rv" style="--i:1">One release in, a whole launch kit out. Your Mind writes it; imaji renders.</p>
+    <nav class="nav rv" style="--i:2" id="nav">
+      <div class="glide"></div>
+      <div class="h">On this page</div>
+      <a href="#s0" class="on"><span class="sec-num">00</span>The last run</a>
+      <a href="#s1"><span class="sec-num">01</span>Hand your Mind the job</a>
+      <a href="#s2"><span class="sec-num">02</span>Drop the workflow in</a>
+      <a href="#s3"><span class="sec-num">03</span>Mint a kit token</a>
+      <a href="#s4"><span class="sec-num">04</span>Kits, for real</a>
+    </nav>
+    <div class="rf rv" style="--i:3">
+      <p class="sentence">For developers who ship real things and refuse to become content creators.</p>
+      <div class="links"><a href="#" data-go="kits">Your kits</a><a href="#">GitHub</a><span class="sw"><span class="knob"></span><button class="l" data-set-theme="light" aria-label="Light"><svg><use href="#i-sun"/></svg></button><button class="d" data-set-theme="dark" aria-label="Dark"><svg><use href="#i-moon"/></svg></button></span></div>
+      <span>Apache-2.0 · s0nderlabs</span>
+    </div>
+  </aside>
+
+  <header class="topbar">
+    <a class="mark" href="#" aria-label="imaji">{{MARK}}</a>
+    <div class="nav-links"><a href="#" data-go="home">Home</a><a href="#" data-go="kits">Your kits</a><a href="#">GitHub</a><span class="sw"><span class="knob"></span><button class="l" data-set-theme="light" aria-label="Light"><svg><use href="#i-sun"/></svg></button><button class="d" data-set-theme="dark" aria-label="Dark"><svg><use href="#i-moon"/></svg></button></span></div>
+  </header>
+
+  <main class="main">
+    <div class="single-head">
+      <a class="mark" href="#" aria-label="imaji">{{MARK}}</a>
+      <div class="nav-links"><a href="#" data-go="kits">Your kits</a><a href="#">GitHub</a><span class="sw"><span class="knob"></span><button class="l" data-set-theme="light" aria-label="Light"><svg><use href="#i-sun"/></svg></button><button class="d" data-set-theme="dark" aria-label="Dark"><svg><use href="#i-moon"/></svg></button></span></div>
+    </div>
+
+    <!-- ================================================================ HOME -->
+    <section class="page" id="p-home">
+      <div class="hero">
+        <p class="kicker rv" style="--i:2">One release in, a whole launch kit out</p>
+        <h1 class="rv" style="--i:3">A developer who ships is a creator whose content is <em>code</em>.</h1>
+        <p class="lede measure rv" style="--i:4">imaji turns each release into the posts, the card and the film they never had time to make. Your own Mind writes them, remembering every release before this one. imaji only renders.</p>
+
+        <div class="tasks rv" style="--i:5" id="s0">
+          <div class="task open">
+            <button><span class="st ok"><svg><use href="#i-check"/></svg></span><span class="ttl">You tagged v0.2.0</span><span class="who">github</span><span class="pill ok">Done</span><svg class="chev"><use href="#i-down"/></svg></button>
+            <div class="dt"><div><ul><li>Release published, imaji.yml ran<span class="num">12:41:03</span></li><li>Sent the tag, the notes and the diff since v0.1.0<span class="num">4.1 KB</span></li></ul></div></div>
+          </div>
+          <div class="task">
+            <button><span class="st ok"><svg><use href="#i-check"/></svg></span><span class="ttl">imaji.labs read it and remembered v0.1.0</span><span class="who">your Mind</span><span class="pill ok">Done</span><svg class="chev"><use href="#i-down"/></svg></button>
+            <div class="dt"><div><ul><li>Brand from onboarding: Tigerlily, dark ground, grotesque<span class="num">memory</span></li><li>Decided: tweet, thread, LinkedIn, card, film<span class="num">5 outputs</span></li><li>Skipped two small fixes, with a reason<span class="num">2</span></li></ul></div></div>
+          </div>
+          <div class="task">
+            <button><span class="st ok"><svg><use href="#i-check"/></svg></span><span class="ttl">Wrote the kit and posted it to imaji</span><span class="who">your Mind</span><span class="pill ok num">2 min 41 s</span><svg class="chev"><use href="#i-down"/></svg></button>
+            <div class="dt"><div><ul><li>POST /api/render, one kit JSON<span class="num">200</span></li><li>Card queued, film queued<span class="num">2 jobs</span></li></ul></div></div>
+          </div>
+          <div class="task">
+            <button><span class="st ok"><svg><use href="#i-check"/></svg></span><span class="ttl">Rendered the card</span><span class="who">imaji</span><span class="pill ok num">2.1 s</span><svg class="chev"><use href="#i-down"/></svg></button>
+            <div class="dt"><div><ul><li>1200 × 630, from HTML, deterministic<span class="num">card.png</span></li></ul></div></div>
+          </div>
+          <div class="task" id="task-film">
+            <button><span class="st run"><i></i></span><span class="ttl">Rendering the film</span><span class="who">imaji</span><span class="pill run num" id="film-pill">frame 188 / 300</span><svg class="chev"><use href="#i-down"/></svg></button>
+            <div class="dt"><div><ul><li>1920 × 1080, 30 fps, ten seconds, four beats<span class="num">film.mp4</span></li><li>Then the kit URL goes back to your Mind, and it replies<span class="num">next</span></li></ul></div></div>
+          </div>
+        </div>
+      </div>
+
+      <section class="sec hair-t rv" id="s1">
+        <div class="sec-h"><span class="sec-num">01</span><h2>Hand your Mind the job</h2></div>
+        <div class="body">
+          <p class="measure">Paste this once into a chat with your own Mind. It is the whole job: what a kit is, the JSON to answer with, how to call the renderer, and when to skip a release and say why.</p>
+          <div class="field"><button class="btn primary copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy the job</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button><span class="file">job/JOB.md</span></div>
+          <pre class="slab wrap">{{JOB}}</pre>
+        </div>
+      </section>
+
+      <section class="sec hair-t rv" id="s2">
+        <div class="sec-h"><span class="sec-num">02</span><h2>Drop the workflow in your repo</h2></div>
+        <div class="body">
+          <p class="measure">Save it as <span class="file" style="color:var(--ink)">.github/workflows/imaji.yml</span>. Two jobs: <b style="font-weight:500;color:var(--ink)">onboard</b>, which lets your Mind read the repo once and propose your brand, and <b style="font-weight:500;color:var(--ink)">release</b>, which runs every time you tag one.</p>
+          <div class="field"><button class="btn primary copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy the workflow</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button><span class="file">templates/imaji.yml</span></div>
+          <pre class="slab">{{WORKFLOW}}</pre>
+          <dl class="secrets">
+            <div><dt>MINDS_API_KEY</dt><dd>your Builder API key, from build.hellominds.ai</dd></div>
+            <div><dt>MIND_ID</dt><dd>your Mind’s id, lowercase</dd></div>
+            <div><dt>IMAJI_KIT_TOKEN</dt><dd>the token you mint below</dd></div>
+          </dl>
+          <p class="q measure">Three repository secrets. Nothing else to configure: you set the brand by talking to your Mind. Run onboarding once by hand: Actions, imaji, Run workflow, set <span class="file">job</span> to <span class="file">onboard</span>.</p>
+        </div>
+      </section>
+
+      <section class="sec hair-t rv" id="s3">
+        <div class="sec-h"><span class="sec-num">03</span><h2>Mint a kit token</h2></div>
+        <div class="body">
+          <p class="measure">The only credential imaji issues. It authorises posting a kit and belongs in your repository secrets; your kit pages live at a read id derived from it, so a kit link is safe to share.</p>
+          <div class="field"><input type="text" readonly value="f3XD…B4 · shown once" aria-label="kit token"><button class="btn primary">Mint a token</button><button class="btn ghost copy"><span class="swap"><span class="a">Copy</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div>
+          <p class="q">Kits for it appear at <span class="file">/k/9b67acb83bf6c255a882cd82</span>.</p>
+        </div>
+      </section>
+
+      <section class="sec hair-t rv" id="s4">
+        <div class="sec-h"><span class="sec-num">04</span><h2>Kits, for real</h2></div>
+        <div class="body">
+          <p class="measure">imaji announced imaji. The Mind <span style="color:var(--ink)">imaji.labs</span> took the job, was onboarded from this repository’s own README and CSS tokens, then handled two releases through the workflow’s exact path, posting each kit on its own.</p>
+          <div class="rows">
+            <a class="row" href="#" data-go="kit"><span class="l"><span class="tag">v0.2.0</span><span class="t">Every release gets a film</span></span><span class="r"><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>film</span><span class="chip">card</span><span class="chip">x</span><span class="chip">linkedin</span><span class="d num">28 Aug 2026</span></span></a>
+            <a class="row" href="#"><span class="l"><span class="tag">v0.1.0</span><span class="t">imaji ships the card and the private kit page</span></span><span class="r"><span class="chip">card</span><span class="chip">x</span><span class="chip">linkedin</span><span class="d num">28 Aug 2026</span></span></a>
+            <a class="row" href="#"><span class="l"><span class="tag">onboarding</span><span class="t">The Mind proposed the brand and rendered a sample card</span></span><span class="r"><span class="chip">card</span><span class="d num">28 Aug 2026</span></span></a>
+          </div>
+        </div>
+      </section>
+
+      <footer class="foot"><span class="sentence">For developers who ship real things and refuse to become content creators.</span><span>Apache-2.0 · s0nderlabs · <a href="#">GitHub</a></span></footer>
+    </section>
+
+    <!-- ================================================================ KIT -->
+    <section class="page" id="p-kit">
+      <div class="kit-h">
+        <a class="crumb rv" style="--i:0" href="#" data-go="kits"><svg width="10" height="10"><use href="#i-back"/></svg>All kits</a>
+        <h1 class="rv" style="--i:1">Every release gets a <em>film</em></h1>
+        <div class="meta rv" style="--i:2"><span class="v">v0.2.0</span><span>·</span><span class="mono">s0nderlabs/imaji</span><span>·</span><span class="mono num">28 Aug 2026</span><span>·</span><a href="#">Release notes</a></div>
+        <p class="sub measure rv" style="--i:3">Ten seconds, on brand, rendered from HTML by your own Mind.</p>
+        <div class="chips rv" style="--i:4"><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>x</span><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>linkedin</span><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>card</span><span class="chip" id="chip-film">film</span><span class="chip">editorial</span></div>
+        <div class="think rv" style="--i:5;margin-top:calc(18px*var(--sp))" id="think">
+          <button><svg class="spark"><use href="#i-spark"/></svg>Your Mind wrote this in 2 min 41 s<svg class="chev"><use href="#i-chev"/></svg></button>
+          <div class="tr"><div><ol>
+            <li><svg class="ic"><use href="#i-eye"/></svg>Read the release notes and the diff since v0.1.0<span class="m">4.1 KB</span></li>
+            <li><svg class="ic"><use href="#i-mem"/></svg>Remembered the brand and the last kit<span class="m">v0.1.0</span></li>
+            <li><svg class="ic"><use href="#i-pen"/></svg>Wrote the tweet, the thread, the post, the card and the film lines</li>
+            <li><svg class="ic"><use href="#i-bolt"/></svg>Called imaji to render the visuals<span class="m">POST /api/render</span></li>
+          </ol></div></div>
+        </div>
+      </div>
+
+      <section class="block rv"><div class="block-h"><h2>Card</h2><a class="act" href="#">Open full size</a></div><div class="body"><div class="canvas"><div class="card-img"><img src="{{CARD}}" alt="Every release gets a film, v0.2.0 card"></div></div></div></section>
+      <section class="block rv"><div class="block-h"><h2>Film</h2><a class="act" href="#">Open the file</a></div><div class="body"><div class="canvas"><div class="film">
+        <img src="{{CARD}}" alt="">
+        <div class="play"><span><svg><use href="#i-play"/></svg>Play</span></div>
+        <span class="st">10 s · 1920 × 1080 · rendered in 12 s</span>
+        <div class="wait">
+          <div class="loader"><span class="px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="shimmer">Rendering the film</span><span class="clock" id="clock">0.0s</span></div>
+          <div class="err"><b>The film did not render</b><span>ffmpeg exited 1 while muxing frames; the card is fine. Retry re-queues only the film.</span><button data-film-set="rendering">Retry</button></div>
+        </div>
+      </div></div></div></section>
+      <section class="block rv"><div class="block-h"><h2>Tweet</h2><button class="btn primary copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div><div class="body"><p class="tweet measure" id="tweet" data-text="imaji v0.2.0: your Mind now renders a 10-second film for every release, not just the card. Tag a release, get the kit. No prompts, no content calendar."><span class="txt"></span><span class="caret"></span></p><p class="count"><span class="num" id="tweet-count">0 / 280</span><button id="replay">replay</button></p></div></section>
+      <section class="block rv"><div class="block-h"><h2>Thread</h2><button class="btn primary copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy thread</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div><div class="body"><ol class="thread">
+        <li><span class="n">1</span><p>v0.2.0 is out. What changed: the film. Every release now gets a 10-second launch video rendered from HTML, on brand, deterministic, no diffusion model guessing at your logo.</p></li>
+        <li><span class="n">2</span><p>How it works: you tag a release, a GitHub Action wakes your own Mind, the Mind reads the notes, remembers your last release, writes the copy and calls imaji to render the visuals.</p></li>
+        <li><span class="n">3</span><p>Building on v0.1.0, which shipped the card and the private kit page. Next: the Bazaar listing so any Mind can take the job. imaji.s0nderlabs.xyz</p></li>
+      </ol></div></section>
+      <section class="block rv"><div class="block-h"><h2>LinkedIn</h2><button class="btn primary copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div><div class="body li measure"><p>We shipped imaji v0.2.0.</p><p>Every release your team tags now comes back as a full launch kit: a tweet, a thread, this post, a social card and a 10-second film. Your own Mind writes it, remembering every release before it. imaji only renders.</p><p>For developers who ship real things and refuse to become content creators.</p></div></section>
+      <section class="block rv"><div class="block-h"><h2>Skipped, on purpose</h2></div><div class="body"><ul class="skipped"><li>two small fixes are mentioned in the release notes but do not earn a beat: long card headlines now step down in size, and literal newlines in Mind copy render as paragraphs</li></ul></div></section>
+      <section class="block rv"><div class="block-h"><h2>What your Mind will remember</h2></div><div class="body"><div class="memory measure"><b>v0.2.0 builds on v0.1.0</b> of s0nderlabs/imaji by making the film real: 1920 × 1080, ten seconds, four beats, rendered frame by frame from HTML, queued right after the card. Kit index lists every kit, newest first.</div></div></section>
+    </section>
+
+    <!-- ================================================================ KITS -->
+    <section class="page" id="p-kits">
+      <div class="kit-h"><h1 class="rv" style="--i:0">Kits</h1><p class="sub measure rv" style="--i:1"><span style="color:var(--ink)">s0nderlabs/imaji</span>. 3 releases, newest first.</p></div>
+      <div class="rows rv" style="--i:2;margin-top:calc(24px*var(--sp))">
+        <a class="row" href="#" data-go="kit"><span class="l"><span class="tag">v0.2.0</span><span class="t">Every release gets a film</span></span><span class="r"><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>film</span><span class="chip">card</span><span class="chip">x</span><span class="chip">linkedin</span><span class="d num">28 Aug 2026</span></span></a>
+        <a class="row" href="#"><span class="l"><span class="tag">v0.1.0</span><span class="t">imaji ships the card and the private kit page</span></span><span class="r"><span class="chip">card</span><span class="chip">x</span><span class="chip">linkedin</span><span class="d num">28 Aug 2026</span></span></a>
+        <a class="row" href="#"><span class="l"><span class="tag">onboarding</span><span class="t">The Mind proposed the brand and rendered a sample card</span></span><span class="r"><span class="chip">card</span><span class="d num">28 Aug 2026</span></span></a>
+      </div>
+      <footer class="foot" style="margin-top:calc(48px*var(--sp))"><span class="sentence">Tag a release. The next kit shows up here on its own.</span><span>Apache-2.0 · s0nderlabs</span></footer>
+    </section>
+  </main>
+</div>
+
+<!-- ================================================================ CONTROLS -->
+<div class="ctl" id="ctl">
+  <div class="ctl-h"><b>imaji mock controls</b><button id="min">hide</button></div>
+  <div class="ctl-g"><div class="l"><span>Page</span></div><div class="seg" data-k="page"><button data-v="home">Home</button><button data-v="kit">Kit</button><button data-v="kits">Kits</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Layout</span></div><div class="seg" data-k="layout"><button data-v="rail">Left rail</button><button data-v="single">Single scroll</button><button data-v="topbar">Top bar</button></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Theme</span></div><div class="seg" data-k="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div></div><div><div class="l"><span>Paper</span></div><div class="seg" data-k="paper"><button data-v="warm">Warm</button><button data-v="cool">Cool</button></div></div></div>
+  <div class="ctl-g"><div class="l"><span>Type, body and UI</span><span>from your posts</span></div><div class="seg" data-k="font"><button data-v="polysans">PolySans</button><button data-v="diegrotesk">Die Grotesk</button><button data-v="opensauce">Open Sauce</button><button data-v="helvetica">Helvetica Neue</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Type, headings</span></div><div class="seg" data-k="display"><button data-v="same">Same as body</button><button data-v="bulky">PolySans Bulky</button><button data-v="peace">Peace Sans</button><button data-v="adventor">Avant Garde*</button><button data-v="pixel">Pix Geist</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Accent word</span><span>the one coloured word</span></div><div class="seg" data-k="script"><button data-v="none">Same face</button><button data-v="tempting">Tempting script</button></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Texture</span></div><div class="seg" data-k="texture"><button data-v="hatch">Hatch</button><button data-v="grain">Grain</button><button data-v="dots">Dots</button><button data-v="none">None</button></div></div><div><div class="l"><span>Glow</span></div><div class="seg" data-k="glow"><button data-v="on">On</button><button data-v="off">Off</button></div></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Motion</span></div><div class="seg" data-k="motion"><button data-v="full">Full</button><button data-v="calm">Calm</button></div></div><div><div class="l"><span>Film state</span></div><div class="seg" data-k="film"><button data-v="rendering">Rendering</button><button data-v="done">Done</button><button data-v="failed">Failed</button></div></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Scale</span></div><div class="seg" data-k="scale"><button data-v="14">14</button><button data-v="15">15</button><button data-v="16">16</button></div></div><div><div class="l"><span>Density</span></div><div class="seg" data-k="density"><button data-v="compact">Tight</button><button data-v="regular">Regular</button><button data-v="airy">Airy</button></div></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Radius</span></div><div class="seg" data-k="radius"><button data-v="8">8</button><button data-v="12">12</button><button data-v="16">16</button></div></div><div><div class="l"><span>Rules</span></div><div class="seg" data-k="grid"><button data-v="dashed">Dashed</button><button data-v="solid">Solid</button></div></div></div>
+  <div class="ctl-g"><div class="l"><span>Wordmark size</span></div><div class="seg" data-k="mark"><button data-v="s">Small</button><button data-v="m">Medium</button><button data-v="l">Large</button></div></div>
+  <div class="ctl-f"><button id="reset">Reset</button><button class="p" id="copy">Copy config</button></div>
+  <div class="cfg" id="cfg"></div>
+  <p class="note">*Avant Garde is shown through TeX Gyre Adventor, its open clone. PolySans and Die Grotesk are trial cuts (letters, digits, basic punctuation; the rest falls back). PP Mori, Recoleta, Cooper BT and Berthold have no trial files on this Mac.</p>
+</div>
+
+<script>
+const KEYS = ['page','layout','theme','paper','font','display','script','texture','glow','motion','film','scale','density','radius','grid','mark'];
+const DEF = { page:'home', layout:'rail', theme:'light', paper:'warm', font:'polysans', display:'same', script:'none', texture:'hatch', glow:'on', motion:'full', film:'rendering', scale:'15', density:'regular', radius:'12', grid:'dashed', mark:'m' };
+const root = document.documentElement, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+let state = { ...DEF };
+try { Object.assign(state, JSON.parse(localStorage.getItem('imaji-mock-2') || '{}')) } catch {}
+if (location.hash.length > 2) { try { Object.assign(state, JSON.parse(decodeURIComponent(location.hash.slice(1)))) } catch {} }
+
+let lastPage = null;
+function render() {
+  for (const k of KEYS) root.dataset[k] = state[k];
+  $$('.seg').forEach(seg => seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === state[seg.dataset.k])));
+  $('#cfg').textContent = JSON.stringify(state);
+  try { localStorage.setItem('imaji-mock-2', JSON.stringify(state)) } catch {}
+  history.replaceState(null, '', '#' + encodeURIComponent(JSON.stringify(state)));
+  if (state.page !== lastPage) { lastPage = state.page; window.scrollTo(0, 0); enter(); if (state.page === 'kit') stream(); }
+  if (state.film === 'rendering') startClock(); else stopClock();
+  const cf = $('#chip-film'); cf.classList.toggle('on', state.film === 'done'); cf.innerHTML = state.film === 'done' ? '<svg class="ic"><use href="#i-check"/></svg>film' : 'film';
+}
+/* page-load reveal: rail + hero stagger in; everything else reveals on scroll */
+function visible(e) { const p = e.closest('.page'); return !p || getComputedStyle(p).display !== 'none' }
+function enter() {
+  $$('.rv').forEach(e => e.classList.remove('in'));
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    $$('.rv').forEach(e => { if (!visible(e)) return; if (e.style.getPropertyValue('--i') !== '' || e.getBoundingClientRect().top < innerHeight * .92) e.classList.add('in') });
+  }));
+}
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in') }), { rootMargin: '0px 0px -6% 0px' });
+$$('.rv').forEach(e => io.observe(e));
+/* controls */
+$$('.seg button').forEach(b => b.addEventListener('click', () => { state[b.parentElement.dataset.k] = b.dataset.v; render() }));
+$$('[data-go]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); state.page = a.dataset.go; render() }));
+$$('[data-set-theme]').forEach(b => b.addEventListener('click', () => { state.theme = b.dataset.setTheme; render() }));
+$$('[data-film-set]').forEach(b => b.addEventListener('click', () => { state.film = b.dataset.filmSet; render() }));
+$('#reset').addEventListener('click', () => { state = { ...DEF }; lastPage = null; render() });
+$('#copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText('imaji mock config: ' + JSON.stringify(state)) } catch {} const c = $('#cfg'); c.classList.add('show'); setTimeout(() => c.classList.remove('show'), 3000) });
+$('#min').addEventListener('click', () => { const c = $('#ctl'); c.classList.toggle('min'); $('#min').textContent = c.classList.contains('min') ? 'controls' : 'hide' });
+/* copy buttons morph to a check, then back */
+$$('.btn.copy').forEach(b => b.addEventListener('click', () => { b.classList.add('done'); clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('done'), 1400) }));
+/* gliding hover indicator on the rail nav */
+const nav = $('#nav'), glide = nav.querySelector('.glide');
+nav.querySelectorAll('a').forEach(a => a.addEventListener('mouseenter', () => { const r = a.getBoundingClientRect(), n = nav.getBoundingClientRect(); glide.style.top = (r.top - n.top) + 'px'; glide.style.height = r.height + 'px'; nav.classList.add('hot') }));
+nav.addEventListener('mouseleave', () => nav.classList.remove('hot'));
+/* nav highlight follows scroll */
+const links = nav.querySelectorAll('a');
+const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(l => l.classList.toggle('on', l.getAttribute('href') === '#' + e.target.id)) }), { rootMargin: '-30% 0px -60% 0px' });
+$$('#p-home .sec, #p-home .tasks').forEach(s => io2.observe(s));
+/* expandables */
+$$('.task > button').forEach(b => b.addEventListener('click', () => b.parentElement.classList.toggle('open')));
+$('#think > button').addEventListener('click', () => $('#think').classList.toggle('open'));
+/* film clock and the frame counter on the home task */
+let clockT = null, clockStart = 0;
+function startClock() { if (clockT) return; clockStart = performance.now(); clockT = setInterval(() => { const s = (performance.now() - clockStart) / 1000 + 6.4; $('#clock').textContent = s.toFixed(1) + 's'; $('#film-pill').textContent = 'frame ' + Math.min(300, 188 + Math.floor(s * 9)) + ' / 300' }, 100) }
+function stopClock() { clearInterval(clockT); clockT = null; $('#film-pill').textContent = 'frame 300 / 300' }
+/* the tweet streams in */
+let streamT = null;
+function stream() {
+  const p = $('#tweet'), t = p.dataset.text, out = p.querySelector('.txt'), c = $('#tweet-count');
+  clearInterval(streamT); p.classList.remove('done'); out.textContent = '';
+  if (state.motion === 'calm') { out.textContent = t; p.classList.add('done'); c.textContent = t.length + ' / 280'; return }
+  let i = 0;
+  streamT = setInterval(() => { i += 1 + (Math.random() < .25 ? 1 : 0); out.textContent = t.slice(0, i); c.textContent = Math.min(i, t.length) + ' / 280'; if (i >= t.length) { clearInterval(streamT); p.classList.add('done'); c.textContent = t.length + ' / 280' } }, 22);
+}
+$('#replay').addEventListener('click', stream);
+render();
+</script>
+</body>
+</html>

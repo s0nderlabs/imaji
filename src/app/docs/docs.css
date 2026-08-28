@@ -1,0 +1,658 @@
+/* ===========================================================================
+   The docs, in the house style.
+
+   Everything here is scoped under `.docs` and every colour is a token from
+   globals.css, so the pages follow the ground the rest of the site is on and
+   whatever the theme does to those tokens happens here too. No colour is
+   written out, and no rule paints a ground of its own except the two surfaces
+   that are meant to sit on top of the paper: a code slab and the mobile nav.
+
+   The shape: a rail of links on the left, one column of prose on the right at
+   about 75 characters, hairlines drawn as inset shadows, and the accent used
+   in exactly two places, the current page in the rail and a link in the text.
+   =========================================================================== */
+
+.docs {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------------ the bar */
+.docs-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  /* opaque, not translucent: prose scrolling underneath a blurred bar reads
+     as a smudge, and this one is only 50 px tall */
+  background: var(--page);
+  box-shadow: inset 0 -1px 0 0 var(--hair);
+}
+.docs-bar-in {
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2em;
+  width: 100%;
+  max-width: 1160px;
+  padding: 14px 20px;
+}
+.docs-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.62em;
+  min-width: 0;
+}
+.docs-brand .mark {
+  align-self: center;
+  font-size: 22px;
+}
+.docs-brand-here {
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  letter-spacing: -0.01em;
+  color: var(--ink-2);
+  transition: color var(--t-fast) var(--ease);
+}
+.docs-brand-here:hover {
+  color: var(--ink);
+}
+.docs-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.1em;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.docs-bar-right a,
+.docs-bar-right button {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+  transition: color var(--t-fast) var(--ease);
+}
+.docs-bar-right a:hover,
+.docs-bar-right button:hover {
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------- the shell */
+.docs-shell {
+  flex: 1;
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 34px 20px 96px;
+  display: grid;
+  gap: 30px;
+}
+@media (min-width: 900px) {
+  .docs-shell {
+    grid-template-columns: 208px minmax(0, 1fr);
+    gap: 56px;
+    padding-top: 46px;
+  }
+}
+.docs-rail {
+  display: none;
+}
+@media (min-width: 900px) {
+  .docs-rail {
+    display: block;
+  }
+  .docs-rail-in {
+    position: sticky;
+    top: 86px;
+    max-height: calc(100dvh - 120px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 12px;
+  }
+}
+.docs-col {
+  min-width: 0;
+}
+
+/* ----------------------------------------------------------------- the rail */
+.docs-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.docs-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.docs-nav-name {
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  letter-spacing: -0.005em;
+  color: var(--ink-3);
+  padding-left: 10px;
+}
+.docs-nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.docs-nav a {
+  display: block;
+  padding: 5px 10px;
+  border-radius: var(--r-in);
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  color: var(--ink-2);
+  transition:
+    color var(--t-fast) var(--ease),
+    background-color var(--t-fast) var(--ease);
+}
+.docs-nav a:hover {
+  color: var(--ink);
+  background: var(--hover);
+}
+/* the page you are on is the accent, and nothing else on the rail is: a
+   colour rather than a filled chip, so the rail stays a list of words */
+.docs-nav a[aria-current="page"],
+.docs-nav a[aria-current="page"]:hover {
+  color: var(--accent-ink);
+  font-weight: 500;
+  background: none;
+}
+
+.docs-nav-all {
+  display: block;
+  padding: 5px 10px;
+  border-radius: var(--r-in);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  transition:
+    color var(--t-fast) var(--ease),
+    background-color var(--t-fast) var(--ease);
+}
+.docs-nav-all:hover {
+  color: var(--ink);
+  background: var(--hover);
+}
+.docs-nav-all[aria-current="page"],
+.docs-nav-all[aria-current="page"]:hover {
+  color: var(--accent-ink);
+  font-weight: 500;
+  background: none;
+}
+
+/* -------------------------------------------------------------- phone nav */
+.docs-pick {
+  margin-bottom: 26px;
+}
+@media (min-width: 900px) {
+  .docs-pick {
+    display: none;
+  }
+}
+.docs-pick > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 11px 15px;
+  border-radius: var(--r-in);
+  background: var(--card);
+  box-shadow: var(--shadow-lift);
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--t-sm);
+  color: var(--ink);
+}
+.docs-pick > summary::-webkit-details-marker {
+  display: none;
+}
+.docs-pick > summary svg {
+  flex: none;
+  color: var(--ink-3);
+  transition: transform var(--t-fast) var(--ease);
+}
+.docs-pick[open] > summary svg {
+  transform: rotate(180deg);
+}
+.docs-pick-body {
+  margin-top: 8px;
+  padding: 16px 8px;
+  border-radius: var(--r-in);
+  background: var(--card);
+  box-shadow: var(--shadow-lift);
+}
+
+/* ----------------------------------------------------------------- indexes */
+.docs-lead h1 {
+  font-size: var(--t-xl);
+  line-height: 1.06;
+}
+.docs-lead p {
+  max-width: 60ch;
+  margin-top: 14px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.docs-lead-ver {
+  margin-top: 18px;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+
+.docs-index {
+  margin-top: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+}
+.docs-index section {
+  padding-top: 24px;
+  box-shadow: inset 0 1px 0 0 var(--hair);
+}
+.docs-index h2 {
+  font-size: var(--t-lg);
+  color: var(--ink);
+}
+.docs-index ul {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.docs-index li a {
+  display: block;
+  margin: 0 -12px;
+  padding: 11px 12px;
+  border-radius: var(--r-in);
+  transition: background-color var(--t-fast) var(--ease);
+}
+.docs-index li a:hover {
+  background: var(--hover);
+}
+.docs-index li b {
+  font-weight: 500;
+  font-size: var(--t-md);
+  color: var(--ink);
+}
+.docs-index li span {
+  display: block;
+  max-width: 66ch;
+  margin-top: 2px;
+  font-size: var(--t-sm);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* ----------------------------------------------------------------- the text
+   Two measures, not one. Running text stops at about 75 characters, which in
+   this face is 37rem (`ch` is no use here: PolySans' zero is wide enough that
+   68ch would run to 90 characters a line). Tables and code blocks are not
+   running text and get the wider column, so a four-column table is not
+   squeezed to keep a paragraph honest. */
+.prose {
+  max-width: 44rem;
+  font-size: var(--t-md);
+  line-height: 1.72;
+  color: var(--ink);
+  overflow-wrap: break-word;
+}
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote {
+  max-width: 37rem;
+}
+.prose > :first-child {
+  margin-top: 0;
+}
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.022em;
+  line-height: 1.12;
+  color: var(--ink);
+  scroll-margin-top: 96px;
+  text-wrap: balance;
+}
+.prose h1 {
+  font-size: clamp(27px, 4.4vw, 34px);
+  margin: 0 0 18px;
+}
+.prose h2 {
+  font-size: 23px;
+  margin: 46px 0 14px;
+}
+.prose h3 {
+  font-size: 18px;
+  margin: 32px 0 10px;
+}
+.prose h4 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--t-md);
+  margin: 26px 0 8px;
+}
+.prose p {
+  margin: 0 0 17px;
+}
+.prose strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.prose em {
+  font-style: italic;
+}
+/* Tailwind's preflight strips list markers from every ul and ol, and a
+   changelog without its bullets is a wall. They come back here. */
+.prose ul {
+  list-style: disc;
+  margin: 0 0 17px;
+  padding-left: 1.35em;
+}
+.prose ol {
+  list-style: decimal;
+  margin: 0 0 17px;
+  padding-left: 1.5em;
+}
+.prose ul ul {
+  list-style: circle;
+}
+.prose li {
+  margin-bottom: 6px;
+}
+.prose li::marker {
+  color: var(--ink-3);
+}
+.prose li > ul,
+.prose li > ol {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+.prose blockquote {
+  margin: 22px 0;
+  padding-left: 18px;
+  box-shadow: inset 2px 0 0 0 var(--hair-strong);
+  color: var(--ink-2);
+}
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+.prose hr {
+  margin: 40px 0;
+  border: 0;
+  height: 1px;
+  background: var(--hair);
+}
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-in);
+}
+
+/* links: the accent, and the only other place it appears on the page */
+.prose a {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklch, var(--accent) 34%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--t-fast) var(--ease);
+}
+.prose a:hover {
+  text-decoration-color: var(--accent);
+}
+.prose a .out {
+  margin-left: 0.15em;
+  font-size: 0.85em;
+  color: var(--ink-3);
+}
+
+/* a link inside a heading is still a heading: it keeps the heading's colour
+   and drops the outbound arrow, so a changelog title is not a red banner */
+.prose h1 a,
+.prose h2 a,
+.prose h3 a,
+.prose h4 a {
+  color: inherit;
+  text-decoration-color: var(--hair-strong);
+}
+.prose h1 a:hover,
+.prose h2 a:hover,
+.prose h3 a:hover,
+.prose h4 a:hover {
+  text-decoration-color: var(--accent);
+}
+.prose h1 a .out,
+.prose h2 a .out,
+.prose h3 a .out,
+.prose h4 a .out {
+  display: none;
+}
+
+/* the anchor a heading grows on hover */
+.prose .h-anchor {
+  margin-left: 0.35em;
+  user-select: none;
+  font-family: var(--font-mono);
+  font-size: 0.62em;
+  color: var(--ink-3);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease);
+}
+.prose h2:hover .h-anchor,
+.prose h3:hover .h-anchor,
+.prose .h-anchor:focus-visible {
+  opacity: 1;
+}
+
+/* code */
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  color: var(--ink);
+}
+.prose :not(pre) > code {
+  padding: 0.12em 0.36em;
+  border-radius: 5px;
+  background: var(--inset);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  overflow-wrap: break-word;
+}
+.docs-code {
+  position: relative;
+  margin: 22px 0;
+}
+.docs-code pre {
+  margin: 0;
+  padding: 15px 17px;
+  border-radius: var(--r-in);
+  background: var(--inset);
+  box-shadow: inset 0 0 0 1px var(--line);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.docs-code pre code {
+  display: block;
+  font-size: var(--t-xs);
+  line-height: 1.68;
+  color: var(--ink-2);
+  white-space: pre;
+  tab-size: 2;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+}
+.docs-code .docs-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease);
+}
+.docs-code:hover .docs-copy,
+.docs-code:focus-within .docs-copy {
+  opacity: 1;
+}
+.docs-code pre::-webkit-scrollbar,
+.docs-table-wrap::-webkit-scrollbar {
+  height: 9px;
+}
+.docs-code pre::-webkit-scrollbar-thumb,
+.docs-table-wrap::-webkit-scrollbar-thumb {
+  background: var(--hair-strong);
+  border-radius: 999px;
+}
+
+/* tables: wide ones scroll inside themselves, the page never does */
+.docs-table-wrap {
+  margin: 22px 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-sm);
+  line-height: 1.55;
+}
+.prose thead th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0 14px 9px 0;
+  box-shadow: inset 0 -1px 0 0 var(--hair-strong);
+  white-space: nowrap;
+}
+.prose tbody td {
+  vertical-align: top;
+  padding: 10px 14px 10px 0;
+  color: var(--ink-2);
+  box-shadow: inset 0 -1px 0 0 var(--hair);
+}
+.prose tbody tr:last-child td {
+  box-shadow: none;
+}
+.prose th:last-child,
+.prose td:last-child {
+  padding-right: 0;
+}
+.prose td code {
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- the foot */
+.docs-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4em 1.5em;
+  max-width: 44rem;
+  margin-top: 46px;
+  padding-top: 18px;
+  box-shadow: inset 0 1px 0 0 var(--hair);
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.docs-source a {
+  font-family: var(--font-mono);
+  color: var(--ink-2);
+  transition: color var(--t-fast) var(--ease);
+}
+.docs-source a:hover {
+  color: var(--ink);
+}
+.docs-source .docs-raw {
+  font-family: var(--font-body);
+  color: var(--ink-3);
+  text-decoration: underline;
+  text-decoration-color: var(--hair);
+  text-underline-offset: 3px;
+}
+.docs-source .docs-raw:hover {
+  color: var(--ink);
+  text-decoration-color: var(--ink-3);
+}
+
+.docs-adj {
+  max-width: 44rem;
+  margin-top: 26px;
+  display: grid;
+  gap: 10px;
+}
+@media (min-width: 620px) {
+  .docs-adj {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.docs-adj a {
+  display: block;
+  padding: 13px 16px;
+  border-radius: var(--r-in);
+  background: var(--card-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition:
+    background-color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
+}
+.docs-adj a:hover {
+  background: var(--card);
+}
+.docs-adj a:active {
+  transform: scale(0.995);
+}
+.docs-adj .dir {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.docs-adj .to {
+  margin-top: 2px;
+  font-size: var(--t-md);
+  color: var(--ink);
+}
+@media (min-width: 620px) {
+  .docs-adj .next {
+    text-align: right;
+  }
+}
+
+.docs-foot {
+  margin-top: auto;
+  box-shadow: inset 0 1px 0 0 var(--hair);
+}
+.docs-foot-in {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em 1.4em;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.docs-foot-in nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1em;
+}
+.docs-foot-in a {
+  transition: color var(--t-fast) var(--ease);
+}
+.docs-foot-in a:hover {
+  color: var(--ink);
+}

@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en" data-layout="stack" data-theme="light" data-paper="warm" data-font="polysans" data-display="same" data-script="none" data-texture="hatch" data-glow="on" data-motion="full" data-scale="15" data-density="regular" data-radius="14" data-mark="m" data-film="rendering" data-setup="todo" data-earlier="stacked">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>imaji mock studio</title>
+<link rel="icon" href="{{FAVICON}}">
+<style>
+/* ---------------------------------------------------------------- fonts (only the ones you sent) */
+@font-face{font-family:"PolySans";font-weight:300;src:url("{{PS300}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans";font-weight:400;src:url("{{PS400}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans";font-weight:500;src:url("{{PS500}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans";font-weight:700;src:url("{{PS700}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans Mono";font-weight:400;src:url("{{PSM400}}") format("opentype");font-display:swap}
+@font-face{font-family:"PolySans Mono";font-weight:500;src:url("{{PSM500}}") format("opentype");font-display:swap}
+@font-face{font-family:"Die Grotesk";font-weight:300 700;src:url("{{DG}}") format("woff2");font-display:swap}
+@font-face{font-family:"Open Sauce One";font-weight:400;src:url("{{OS400}}") format("truetype");font-display:swap}
+@font-face{font-family:"Open Sauce One";font-weight:500;src:url("{{OS500}}") format("truetype");font-display:swap}
+@font-face{font-family:"Open Sauce One";font-weight:600;src:url("{{OS600}}") format("truetype");font-display:swap}
+@font-face{font-family:"Peace Sans";font-weight:400;src:url("{{PEACE}}") format("opentype");font-display:swap}
+@font-face{font-family:"Tempting";font-weight:400;src:url("{{TEMPTING}}") format("opentype");font-display:swap}
+@font-face{font-family:"Adventor";font-weight:400;src:url("{{ADV400}}") format("opentype");font-display:swap}
+@font-face{font-family:"Adventor";font-weight:700;src:url("{{ADV700}}") format("opentype");font-display:swap}
+@font-face{font-family:"Geist Pixel";font-weight:400;src:url("{{PIXEL}}") format("woff2");font-display:swap}
+
+/* ---------------------------------------------------------------- tokens: one warm temperature, pure white reserved for the focused card */
+:root{
+  --page:oklch(96.6% .006 80); --card:oklch(100% 0 0); --card-2:oklch(98.4% .004 80); --inset:oklch(97.2% .005 80); --hover:oklch(95.4% .006 80);
+  --ink:oklch(24% .012 60); --ink-2:oklch(48% .012 60); --ink-3:oklch(64% .012 60);
+  --line:oklch(92.5% .007 80); --line-soft:oklch(95% .005 80);
+  --stripe:oklch(40% .01 60 / .07); --stripe-bg:oklch(95.6% .006 80);
+  --accent:oklch(64.5% .19 32); --accent-ink:oklch(56% .18 32); --accent-tint:oklch(95.8% .022 32); --on-accent:oklch(99% .005 80);
+  --shadow-card:0 1px 2px oklch(0% 0 0 / .03),0 8px 24px oklch(0% 0 0 / .04),0 24px 48px oklch(0% 0 0 / .03);
+  --shadow-lift:0 1px 2px oklch(0% 0 0 / .04),0 18px 40px oklch(0% 0 0 / .08);
+  --shadow-sheet:0 -1px 0 oklch(0% 0 0 / .04),0 -24px 64px oklch(0% 0 0 / .18);
+  --font-body:"PolySans","Open Sauce One","Helvetica Neue",sans-serif;
+  --font-display:var(--font-body); --display-weight:500; --display-track:-.02em; --display-lh:1.06;
+  --font-mono:"PolySans Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --font-script:"Tempting",cursive;
+  --base:15px; --sp:1; --measure:60ch;
+  --r:14px; --r-in:9px; --r-ctl:9px;
+  --ease:cubic-bezier(.23,1,.32,1); --ease-drawer:cubic-bezier(.32,.72,0,1);
+  --t-fast:150ms; --t:220ms; --t-slow:420ms;
+  --mark:28px;
+}
+:root[data-paper="cool"]{--page:oklch(96.4% .002 250); --card-2:oklch(98.5% .001 250); --inset:oklch(97.4% .002 250); --hover:oklch(95.2% .003 250); --ink:oklch(24.7% .006 258); --ink-2:oklch(48% .01 264); --ink-3:oklch(64% .009 264); --line:oklch(92.5% .004 260); --line-soft:oklch(95% .003 260); --stripe-bg:oklch(95.6% .002 250)}
+:root[data-theme="dark"]{
+  --page:oklch(19% .008 60); --card:oklch(24.5% .009 60); --card-2:oklch(22.5% .008 60); --inset:oklch(27% .009 60); --hover:oklch(29.5% .01 60);
+  --ink:oklch(95% .008 80); --ink-2:oklch(73% .01 70); --ink-3:oklch(56% .01 65);
+  --line:oklch(31% .01 60); --line-soft:oklch(27.5% .009 60);
+  --stripe:oklch(90% .01 80 / .05); --stripe-bg:oklch(16.5% .008 60);
+  --accent-ink:oklch(74% .17 34); --accent-tint:oklch(30% .05 32); --on-accent:oklch(18% .02 32);
+  --shadow-card:0 1px 0 oklch(100% 0 0 / .05) inset,0 8px 24px oklch(0% 0 0 / .3),0 24px 48px oklch(0% 0 0 / .3);
+  --shadow-lift:0 1px 0 oklch(100% 0 0 / .06) inset,0 18px 40px oklch(0% 0 0 / .45);
+  --shadow-sheet:0 -1px 0 oklch(100% 0 0 / .06),0 -24px 64px oklch(0% 0 0 / .5);
+}
+:root[data-theme="dark"][data-paper="cool"]{--page:oklch(18.5% .004 260); --card:oklch(24% .005 260); --card-2:oklch(22% .004 260); --inset:oklch(26.5% .005 260); --hover:oklch(29% .005 260); --line:oklch(30.5% .006 260); --line-soft:oklch(27% .005 260); --stripe-bg:oklch(16% .004 260)}
+:root[data-font="diegrotesk"]{--font-body:"Die Grotesk","Helvetica Neue",sans-serif}
+:root[data-font="opensauce"]{--font-body:"Open Sauce One","Helvetica Neue",sans-serif}
+:root[data-font="helvetica"]{--font-body:"Helvetica Neue",Helvetica,Arial,sans-serif}
+:root[data-display="peace"]{--font-display:"Peace Sans",var(--font-body);--display-weight:400;--display-track:-.005em;--display-lh:1.02}
+:root[data-display="adventor"]{--font-display:"Adventor",var(--font-body);--display-weight:400;--display-track:-.03em;--display-lh:1.05}
+:root[data-display="pixel"]{--font-display:"Geist Pixel",monospace;--display-weight:400;--display-track:0;--display-lh:1.1}
+:root[data-display="bulky"]{--font-display:"PolySans",var(--font-body);--display-weight:700;--display-track:-.03em}
+:root[data-scale="14"]{--base:14px}:root[data-scale="16"]{--base:16px}
+:root[data-radius="10"]{--r:10px;--r-in:7px;--r-ctl:7px}:root[data-radius="18"]{--r:18px;--r-in:12px;--r-ctl:11px}
+:root[data-density="compact"]{--sp:.82}:root[data-density="airy"]{--sp:1.22}
+:root[data-mark="s"]{--mark:22px}:root[data-mark="l"]{--mark:36px}
+
+/* ---------------------------------------------------------------- base */
+*{box-sizing:border-box;margin:0}
+html{background:var(--stripe-bg)}
+body{background:var(--stripe-bg);color:var(--ink);font-family:var(--font-body);font-size:var(--base);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+[data-texture="hatch"] body{background-image:repeating-linear-gradient(-45deg,var(--stripe) 0 1px,transparent 1px 7px)}
+[data-texture="dots"] body{background-image:radial-gradient(var(--line) 1px,transparent 1.25px);background-size:14px 14px}
+[data-texture="grain"] body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:40;background:url("{{GRAIN}}") 0 0/160px 160px;opacity:.05;mix-blend-mode:multiply}
+[data-texture="grain"][data-theme="dark"] body::after{mix-blend-mode:screen;opacity:.045}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+button,.release,.step{transition:transform var(--t-fast) var(--ease),background-color var(--t-fast) var(--ease),color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+button:active{transform:scale(.97)}
+:focus-visible{outline:none;box-shadow:0 0 0 1px var(--page),0 0 0 3px color-mix(in oklch,var(--accent) 45%,transparent)!important;border-radius:var(--r-ctl)}
+.num{font-variant-numeric:tabular-nums}
+.tok{font-family:var(--font-mono);font-size:.86em;color:var(--ink-2)}
+.measure{max-width:var(--measure);text-wrap:pretty}
+.mark{display:inline-block;color:var(--ink);line-height:0;font-size:var(--mark)}
+.mark svg{height:1em;width:auto;display:block}
+.mark svg .dot{fill:var(--accent)}
+h1,h2,h3{font-family:var(--font-display);font-weight:var(--display-weight);letter-spacing:var(--display-track);line-height:var(--display-lh);text-wrap:balance}
+h1 em{font-style:normal;color:var(--accent-ink)}
+[data-script="tempting"] h1 em{font-family:var(--font-script);font-weight:400;font-size:1.16em;letter-spacing:0;line-height:.8;padding-right:.08em}
+p{text-wrap:pretty}
+
+/* controls */
+.btn{display:inline-flex;align-items:center;gap:.5em;height:2.45em;padding:0 1.05em;border-radius:99px;font-weight:500;font-size:.93em;white-space:nowrap}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:color-mix(in oklch,var(--accent),black 7%)}
+.btn.quiet{background:var(--inset);color:var(--ink)}
+.btn.quiet:hover{background:var(--hover)}
+.btn .ic{width:1em;height:1em;display:block}
+.btn .swap{display:inline-grid}.btn .swap>span{grid-area:1/1;display:inline-flex;align-items:center;gap:.5em;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+.btn .swap>span.b{opacity:0;transform:translateY(4px)}
+.btn.done .swap>span.a{opacity:0;transform:translateY(-4px)}.btn.done .swap>span.b{opacity:1;transform:none}
+.sw{position:relative;display:inline-flex;height:28px;padding:2px;border-radius:99px;background:var(--inset)}
+.sw .knob{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:99px;background:var(--card);box-shadow:0 1px 2px oklch(0% 0 0 / .1);transition:transform var(--t) var(--ease)}
+[data-theme="dark"] .sw .knob{transform:translateX(24px)}
+.sw button{position:relative;z-index:1;width:24px;height:24px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-3)}
+.sw button svg{width:12px;height:12px}
+[data-theme="light"] .sw button.l,[data-theme="dark"] .sw button.d{color:var(--ink)}
+
+/* ---------------------------------------------------------------- shell + header (quiet chrome) */
+.shell{max-width:1200px;margin:0 auto;min-height:100vh;background:var(--page);box-shadow:-1px 0 0 var(--line),1px 0 0 var(--line);position:relative}
+.head{display:flex;align-items:center;justify-content:space-between;padding:calc(22px*var(--sp)) calc(28px*var(--sp)) 0}
+.head .r{display:flex;align-items:center;gap:1.1em;font-size:.93em;color:var(--ink-2)}
+.head .r a:hover{color:var(--ink)}
+.wrap{padding:calc(28px*var(--sp)) calc(28px*var(--sp)) calc(80px*var(--sp))}
+.col{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:calc(18px*var(--sp))}
+
+/* ---------------------------------------------------------------- the kit: one focused card */
+.kit{position:relative;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow-card);padding:calc(28px*var(--sp)) calc(28px*var(--sp)) calc(24px*var(--sp));overflow:hidden}
+[data-glow="on"] .kit::before{content:"";position:absolute;left:-20%;right:-20%;top:-40px;height:60%;pointer-events:none;background:radial-gradient(closest-side in oklch,color-mix(in oklch,var(--accent) 16%,transparent),transparent 72%);z-index:0}
+[data-glow="on"][data-theme="dark"] .kit::before{background:radial-gradient(closest-side in oklch,color-mix(in oklch,var(--accent) 22%,transparent),transparent 72%)}
+.kit>*{position:relative}
+.kit .top{display:flex;align-items:baseline;justify-content:space-between;gap:1em;flex-wrap:wrap;color:var(--ink-3);font-size:.93em}
+.kit .top .v{font-family:var(--font-mono);color:var(--ink-2)}
+.kit h1{font-size:2.35em;margin-top:.35em}
+.kit .made{margin-top:.8em;color:var(--ink-2);font-size:1.02em}
+.kit .made b{font-weight:500;color:var(--ink)}
+/* media: the generated visuals, on a soft inset canvas */
+.media{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:calc(22px*var(--sp));padding:12px;border-radius:var(--r-in);background:var(--card-2);box-shadow:inset 0 0 0 1px var(--line-soft)}
+.media figure{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.media figcaption{display:flex;justify-content:space-between;align-items:baseline;gap:1em;font-size:.86em;color:var(--ink-3);padding:0 2px}
+.media figcaption a{color:var(--ink-2)}.media figcaption a:hover{color:var(--ink)}
+.card-img{border-radius:calc(var(--r-in) - 2px);overflow:hidden;box-shadow:var(--shadow-lift)}
+.card-img img{width:100%;display:block;aspect-ratio:1200/630;object-fit:cover}
+.film{position:relative;border-radius:calc(var(--r-in) - 2px);overflow:hidden;aspect-ratio:1200/630;background:oklch(18% .008 60);box-shadow:var(--shadow-lift)}
+.film img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity var(--t-slow) var(--ease),filter var(--t-slow) var(--ease)}
+.film .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity var(--t) var(--ease)}
+.film .play span{display:inline-flex;align-items:center;gap:.6em;background:oklch(20% .01 60 / .6);color:oklch(96% .01 80);padding:.5em .95em;border-radius:99px;font-size:.88em;backdrop-filter:blur(8px) saturate(1.4);-webkit-backdrop-filter:blur(8px) saturate(1.4)}
+.film .play svg{width:.9em;height:.9em}
+.film .wait{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:oklch(18% .008 60);transition:opacity var(--t-slow) var(--ease)}
+[data-film="done"] .film .wait{opacity:0;pointer-events:none}
+[data-film="rendering"] .film img,[data-film="rendering"] .film .play{opacity:0}
+[data-film="failed"] .film img{opacity:.25;filter:grayscale(1)}[data-film="failed"] .film .play{opacity:0}
+[data-film="failed"] .film .wait{background:oklch(18% .008 60 / .78);backdrop-filter:blur(6px) saturate(1.3);-webkit-backdrop-filter:blur(6px) saturate(1.3)}
+.film .wait .err{display:none;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:0 1.2em}
+[data-film="failed"] .film .wait .loader{display:none}[data-film="failed"] .film .wait .err{display:flex}
+.film .wait .err b{font-weight:500;font-size:.92em;color:oklch(96% .01 80)}
+.film .wait .err span{font-size:.84em;color:oklch(72% .01 70);max-width:30ch}
+.film .wait .err button{margin-top:4px;color:oklch(96% .01 80);font-size:.85em;padding:.4em .9em;border-radius:99px;background:oklch(100% 0 0 / .1)}
+.loader{display:flex;align-items:center;gap:10px}
+.px{display:grid;grid-template-columns:repeat(3,4px);gap:1.5px}
+.px i{width:4px;height:4px;border-radius:1px;background:oklch(92% .01 80);opacity:.15;animation:pixel-on 1.8s linear infinite}
+.px i:nth-child(1){animation-delay:0s}.px i:nth-child(2){animation-delay:.2s}.px i:nth-child(3){animation-delay:.4s}.px i:nth-child(6){animation-delay:.6s}.px i:nth-child(9){animation-delay:.8s}.px i:nth-child(8){animation-delay:1s}.px i:nth-child(7){animation-delay:1.2s}.px i:nth-child(4){animation-delay:1.4s}.px i:nth-child(5){animation-delay:1.6s}
+.shimmer{font-size:.88em;font-weight:500;color:transparent;background:linear-gradient(90deg,oklch(65% .01 70) 35%,oklch(96% .01 80) 50%,oklch(65% .01 70) 65%) 150% center/200% auto;-webkit-background-clip:text;background-clip:text;animation:shimmer-text 1.6s linear infinite}
+.clock{font-family:var(--font-mono);font-size:.78em;color:oklch(62% .01 70);font-variant-numeric:tabular-nums}
+@keyframes pixel-on{0%,100%{opacity:.15}18%,42%{opacity:1}62%{opacity:.15}}
+@keyframes shimmer-text{0%{background-position:150% center}100%{background-position:-50% center}}
+@keyframes caret{0%,100%{opacity:1}50%{opacity:0}}
+/* the words: each channel is a block with a sentence heading and one action */
+.words{display:flex;flex-direction:column;margin-top:calc(10px*var(--sp))}
+.w{padding:calc(22px*var(--sp)) 0 0;margin-top:calc(22px*var(--sp));border-top:1px solid var(--line-soft)}
+.w .wh{display:flex;justify-content:space-between;align-items:center;gap:1em}
+.w h2{font-size:1.18em}
+.w .body{margin-top:calc(12px*var(--sp))}
+.tweet{font-size:1.04em;white-space:pre-wrap;color:var(--ink);min-height:3.2em}
+.tweet .caret{display:inline-block;width:.55em;height:1.05em;vertical-align:-.15em;margin-left:.1em;background:var(--accent);border-radius:1px;animation:caret 1s steps(1) infinite}
+.tweet.done .caret{display:none}
+.thread{list-style:none;display:flex;flex-direction:column;gap:calc(10px*var(--sp))}
+.thread li{display:grid;grid-template-columns:1.6em 1fr;gap:.5em;color:var(--ink)}
+.thread li .n{font-family:var(--font-mono);font-size:.8em;color:var(--ink-3);padding-top:.3em}
+.li p{color:var(--ink);margin-top:.85em}.li p:first-child{margin-top:0}
+.notes{margin-top:calc(26px*var(--sp));padding-top:calc(18px*var(--sp));border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:.8em;font-size:.95em;color:var(--ink-2)}
+.notes b{font-weight:500;color:var(--ink)}
+.notes .replay{color:var(--ink-3);text-decoration:underline;text-underline-offset:3px}
+
+/* ---------------------------------------------------------------- earlier kits: a stack behind, or a list */
+.earlier{position:relative;margin-top:calc(6px*var(--sp))}
+.earlier .stack{position:relative;height:calc(58px*var(--sp));cursor:pointer}
+.earlier .stack i{position:absolute;left:0;right:0;height:100%;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow-card);transition:transform var(--t) var(--ease)}
+.earlier .stack i:nth-child(1){transform:translateY(-14px) scale(.94);opacity:.55}
+.earlier .stack i:nth-child(2){transform:translateY(-7px) scale(.97);opacity:.8}
+.earlier .stack i:nth-child(3){transform:none}
+.earlier .stack:hover i:nth-child(1){transform:translateY(-18px) scale(.94)}
+.earlier .stack:hover i:nth-child(2){transform:translateY(-9px) scale(.97)}
+.earlier .stack .lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 calc(24px*var(--sp));color:var(--ink-2);font-size:.95em}
+.earlier .stack .lbl span:last-child{color:var(--ink-3);font-size:.9em}
+.earlier .list{display:none;flex-direction:column;gap:8px}
+[data-earlier="open"] .earlier .stack{display:none}[data-earlier="open"] .earlier .list{display:flex}
+.release{display:flex;align-items:baseline;justify-content:space-between;gap:1.2em;padding:calc(16px*var(--sp)) calc(24px*var(--sp));background:var(--card);border-radius:var(--r);box-shadow:var(--shadow-card)}
+.release:hover{background:var(--card-2)}
+.release .l{display:flex;flex-direction:column;gap:.2em;min-width:0}
+.release .l b{font-weight:500;color:var(--ink)}
+.release .l span{color:var(--ink-2);font-size:.93em}
+.release .r{display:flex;gap:.8em;align-items:baseline;flex-shrink:0;color:var(--ink-3);font-size:.9em}
+.release .r .v{font-family:var(--font-mono);color:var(--ink-2)}
+
+/* ---------------------------------------------------------------- setup: one phase card, three steps, sheets for detail */
+.setup{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow-card);padding:calc(24px*var(--sp)) calc(28px*var(--sp))}
+.setup .ph{display:flex;align-items:center;gap:.9em}
+.setup .badge{width:2em;height:2em;border-radius:99px;background:var(--accent);color:var(--on-accent);display:inline-flex;align-items:center;justify-content:center;font-weight:500;font-size:.9em;flex-shrink:0}
+.setup h2{font-size:1.3em}
+.setup .est{color:var(--ink-3);font-size:.93em;margin-left:auto;white-space:nowrap}
+.setup>p{margin-top:.8em;color:var(--ink-2)}
+.steps{display:flex;flex-direction:column;margin-top:calc(14px*var(--sp))}
+.step{display:flex;align-items:center;gap:.9em;width:100%;padding:calc(12px*var(--sp)) .8em;margin:0 -.8em;border-radius:var(--r-ctl);color:var(--ink)}
+.step:hover{background:var(--inset)}
+.step .dotn{width:1.55em;height:1.55em;border-radius:99px;box-shadow:inset 0 0 0 1.5px var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:.8em;color:var(--ink-3);flex-shrink:0}
+.step .t{flex:1;min-width:0}
+.step .t b{font-weight:500;display:block}
+.step .t span{display:block;color:var(--ink-3);font-size:.9em;margin-top:.1em}
+.step .go{color:var(--ink-3);font-size:.9em;white-space:nowrap}
+[data-setup="done"] .setup{padding:calc(16px*var(--sp)) calc(28px*var(--sp));background:var(--card-2);box-shadow:none}
+[data-setup="done"] .setup .badge{background:var(--inset);color:var(--ink-2)}
+[data-setup="done"] .setup h2{font-size:1.02em;font-weight:400;color:var(--ink-2)}
+[data-setup="done"] .setup .est,[data-setup="done"] .setup>p,[data-setup="done"] .steps{display:none}
+[data-setup="done"] .setup .ph .undo{display:inline}
+.setup .ph .undo{display:none;margin-left:auto;color:var(--ink-3);font-size:.9em}
+
+/* ---------------------------------------------------------------- sheet (bottom on phones, centered on desktop) */
+.scrim{position:fixed;inset:0;background:oklch(20% .01 60 / .32);opacity:0;pointer-events:none;transition:opacity var(--t) var(--ease);z-index:50;backdrop-filter:blur(2px)}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,102%);width:min(680px,100%);max-height:88vh;overflow:auto;background:var(--card);border-radius:var(--r) var(--r) 0 0;box-shadow:var(--shadow-sheet);padding:calc(22px*var(--sp)) calc(28px*var(--sp)) calc(28px*var(--sp) + env(safe-area-inset-bottom));z-index:51;transition:transform var(--t-slow) var(--ease-drawer)}
+html.sheet-open .scrim{opacity:1;pointer-events:auto}
+html.sheet-open .sheet{transform:translate(-50%,0)}
+.sheet .grab{width:36px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}
+.sheet h2{font-size:1.35em}
+.sheet .est{color:var(--ink-3);font-size:.93em;margin-top:.3em}
+.sheet>.pane>p{margin-top:.9em;color:var(--ink-2)}
+.sheet .need{margin-top:1em}
+.sheet .need b{font-weight:500;display:block;margin-bottom:.4em}
+.sheet .need ul{list-style:none;display:flex;flex-direction:column;gap:.35em;color:var(--ink-2)}
+.sheet .need li{display:flex;gap:.6em;align-items:baseline}
+.sheet .need li::before{content:"";width:6px;height:6px;border-radius:99px;background:var(--accent);flex-shrink:0;position:relative;top:-1px}
+.slab{position:relative;font-family:var(--font-mono);font-size:.8em;line-height:1.55;color:var(--ink-2);background:var(--card-2);border-radius:var(--r-in);padding:1em 1.1em 1.6em;overflow:hidden;max-height:13em;white-space:pre;margin-top:1em;box-shadow:inset 0 0 0 1px var(--line-soft);-webkit-mask-image:linear-gradient(#000 0,#000 calc(100% - 4rem),transparent 100%);mask-image:linear-gradient(#000 0,#000 calc(100% - 4rem),transparent 100%)}
+.slab.wrap{white-space:pre-wrap}
+.sheet .field{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:1em}
+.sheet .field input{font:inherit;font-family:var(--font-mono);font-size:.86em;height:2.45em;padding:0 .9em;border:0;border-radius:99px;background:var(--card-2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);min-width:16em;flex:1}
+.sheet .acts{display:flex;gap:8px;margin-top:1.3em;flex-wrap:wrap}
+.sheet .acts .btn{flex:1;justify-content:center}
+.sheet .secrets{list-style:none;display:flex;flex-direction:column;gap:.35em;color:var(--ink-2)}
+.sheet .secrets li{display:flex;gap:.8em;flex-wrap:wrap;align-items:baseline}
+.sheet .secrets li::before{display:none}
+.sheet .secrets li code{font-family:var(--font-mono);font-size:.86em;color:var(--ink);min-width:11em}
+.sheet .pane{display:none}.sheet .pane.on{display:block}
+
+/* ---------------------------------------------------------------- layouts */
+/* studio: releases as the root navigation on the left, the kit on the right */
+.side{display:none}
+[data-layout="studio"] .wrap{display:grid;grid-template-columns:260px 1fr;gap:calc(28px*var(--sp));align-items:start}
+[data-layout="studio"] .col{max-width:none;margin:0}
+[data-layout="studio"] .side{display:flex;flex-direction:column;gap:6px;position:sticky;top:calc(28px*var(--sp))}
+[data-layout="studio"] .side .h{color:var(--ink-3);font-size:.9em;padding:0 .9em .4em}
+[data-layout="studio"] .side .release{padding:calc(12px*var(--sp)) .9em;background:transparent;box-shadow:none;border-radius:var(--r-ctl)}
+[data-layout="studio"] .side .release.on{background:var(--card);box-shadow:var(--shadow-card)}
+[data-layout="studio"] .side .release:hover:not(.on){background:var(--inset)}
+[data-layout="studio"] .side .release .l b{font-size:.95em}
+[data-layout="studio"] .side .release .l span{font-size:.86em}
+[data-layout="studio"] .side .setup-link{margin-top:14px;padding:calc(12px*var(--sp)) .9em;border-radius:var(--r-ctl);color:var(--ink-2);display:flex;gap:.7em;align-items:center;font-size:.95em}
+[data-layout="studio"] .side .setup-link:hover{background:var(--inset)}
+[data-layout="studio"] .side .setup-link .badge{width:1.6em;height:1.6em;border-radius:99px;background:var(--accent);color:var(--on-accent);display:inline-flex;align-items:center;justify-content:center;font-size:.8em}
+[data-layout="studio"] .earlier,[data-layout="studio"] .setup{display:none}
+[data-layout="studio"] .kit{padding:calc(32px*var(--sp))}
+[data-layout="studio"] .words{display:grid;grid-template-columns:1fr 1fr;column-gap:calc(28px*var(--sp))}
+[data-layout="studio"] .w.wide{grid-column:1/-1}
+/* reader: the card leads, full width, the headline below it, generous type */
+[data-layout="reader"] .col{max-width:760px}
+[data-layout="reader"] .kit{padding:0}
+[data-layout="reader"] .kit::before{display:none}
+[data-layout="reader"] .kit .media{order:-1;margin:0;padding:0;background:none;box-shadow:none;border-radius:0;grid-template-columns:1fr}
+[data-layout="reader"] .kit .media figure:last-child,[data-layout="reader"] .kit .media figcaption{display:none}
+[data-layout="reader"] .card-img{border-radius:0;box-shadow:none}
+[data-layout="reader"] .kit{display:flex;flex-direction:column}
+[data-layout="reader"] .kit .top,[data-layout="reader"] .kit h1,[data-layout="reader"] .kit .made,[data-layout="reader"] .words,[data-layout="reader"] .notes,[data-layout="reader"] .film-solo{margin-left:calc(36px*var(--sp));margin-right:calc(36px*var(--sp))}
+[data-layout="reader"] .kit .top{margin-top:calc(28px*var(--sp))}
+[data-layout="reader"] .kit h1{font-size:2.9em}
+[data-layout="reader"] .kit .made{font-size:1.08em}
+[data-layout="reader"] .notes{margin-bottom:calc(30px*var(--sp))}
+[data-layout="reader"] .film-solo{display:block;margin-top:calc(22px*var(--sp))}
+.film-solo{display:none}
+[data-layout="reader"] .w h2{font-size:1.35em}
+
+/* ---------------------------------------------------------------- motion */
+.rv{opacity:0;transform:translateY(8px);transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease);transition-delay:calc(var(--i,0)*45ms)}
+.rv.in{opacity:1;transform:none}
+[data-motion="calm"] .rv{transform:none;transition-delay:0ms}
+[data-motion="calm"] .px i,[data-motion="calm"] .shimmer{animation-duration:3s}
+[data-motion="calm"] button:active{transform:none}
+@media (prefers-reduced-motion:reduce){.rv{transform:none}}
+
+/* ---------------------------------------------------------------- phone */
+.ctl-fab{display:none;position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;height:36px;padding:0 14px;border-radius:99px;background:oklch(22% .01 60);color:oklch(94% .008 80);font-size:12.5px;align-items:center;box-shadow:0 8px 24px oklch(0% 0 0 / .3)}
+@media (max-width:760px){
+  .head{padding:16px 18px 0}
+  .wrap{padding:18px 12px 96px}
+  .kit{padding:20px 18px 18px}
+  .kit h1{font-size:1.9em}
+  .kit .top>a{display:none}
+  .media{grid-template-columns:1fr;padding:8px;gap:8px}
+  .setup{padding:18px}
+  .release{padding:14px 18px}
+  .earlier .stack .lbl{padding:0 18px}
+  .step{padding:12px .6em;margin:0 -.6em}
+  .step .go{display:none}
+  [data-layout="studio"] .wrap{display:block}
+  [data-layout="studio"] .side{display:none}
+  [data-layout="studio"] .earlier,[data-layout="studio"] .setup{display:block}
+  [data-layout="studio"] .words{display:flex}
+  [data-layout="studio"] .kit{padding:20px 18px 18px}
+  [data-layout="reader"] .kit .top,[data-layout="reader"] .kit h1,[data-layout="reader"] .kit .made,[data-layout="reader"] .words,[data-layout="reader"] .notes,[data-layout="reader"] .film-solo{margin-left:18px;margin-right:18px}
+  [data-layout="reader"] .kit h1{font-size:2.1em}
+  .sheet{width:100%;padding:16px 18px calc(22px + env(safe-area-inset-bottom))}
+  .ctl{display:none}
+  .ctl-fab{display:inline-flex}
+  html.ctl-show .ctl{display:block}html.ctl-show .ctl-fab{display:none}
+  html.sheet-open .ctl-fab{display:none}
+}
+
+/* ---------------------------------------------------------------- controls panel */
+.ctl{position:fixed;right:18px;bottom:18px;z-index:60;width:280px;max-height:calc(100vh - 36px);overflow:auto;background:oklch(22% .01 60);color:oklch(94% .008 80);border-radius:14px;box-shadow:0 0 0 1px oklch(100% 0 0 / .08),0 2px 4px oklch(0% 0 0 / .3),0 18px 48px oklch(0% 0 0 / .45);font-family:"Open Sauce One","Helvetica Neue",sans-serif;font-size:12.5px;line-height:1.4;padding:14px 14px 12px}
+.ctl.min{width:auto;max-height:none;overflow:hidden;padding:0}
+.ctl.min>*:not(.ctl-h){display:none}
+.ctl.min .ctl-h{padding:9px 12px;margin:0}
+.ctl-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ctl-h b{font-weight:500}
+.ctl-h button{color:oklch(70% .01 70);font-size:12px}
+.ctl-g{padding:9px 0;border-top:1px solid oklch(100% 0 0 / .08)}
+.ctl-g .l{display:flex;justify-content:space-between;color:oklch(68% .01 70);font-size:11px;margin-bottom:7px}
+.seg{display:flex;gap:3px;flex-wrap:wrap}
+.seg button{padding:4px 8px;border-radius:6px;color:oklch(72% .01 70);box-shadow:inset 0 0 0 1px oklch(100% 0 0 / .1);font-size:12px}
+.seg button:hover{color:oklch(94% .008 80)}
+.seg button.on{background:oklch(94% .008 80);color:oklch(22% .01 60);box-shadow:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ctl-f{display:flex;gap:6px;padding-top:10px;border-top:1px solid oklch(100% 0 0 / .08);margin-top:4px}
+.ctl-f button{flex:1;padding:6px 8px;border-radius:7px;box-shadow:inset 0 0 0 1px oklch(100% 0 0 / .1);color:oklch(94% .008 80);font-size:12px;text-align:center}
+.ctl-f button.p{background:var(--accent);color:#fff;box-shadow:none}
+.ctl .cfg{font:10.5px/1.5 "PolySans Mono",ui-monospace,monospace;color:oklch(68% .01 70);margin-top:8px;word-break:break-all;display:none}
+.ctl .cfg.show{display:block}
+.ctl .note{font-size:11px;color:oklch(58% .01 70);margin-top:8px;line-height:1.45}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+</defs></svg>
+
+<div class="shell">
+  <header class="head">
+    <a class="mark rv" style="--i:0" href="#" aria-label="imaji">{{MARK}}</a>
+    <div class="r rv" style="--i:1"><a href="#" id="go-setup">Set up a repo</a><a href="#">GitHub</a><span class="sw"><span class="knob"></span><button class="l" data-set-theme="light" aria-label="Light"><svg><use href="#i-sun"/></svg></button><button class="d" data-set-theme="dark" aria-label="Dark"><svg><use href="#i-moon"/></svg></button></span></div>
+  </header>
+
+  <div class="wrap">
+    <aside class="side rv" style="--i:2">
+      <div class="h">s0nderlabs/imaji</div>
+      <a class="release on" href="#"><span class="l"><b>Every release gets a film</b><span>v0.2.0 · 28 Aug</span></span></a>
+      <a class="release" href="#"><span class="l"><b>The card and the private kit page</b><span>v0.1.0 · 28 Aug</span></span></a>
+      <a class="release" href="#"><span class="l"><b>Your Mind proposed the brand</b><span>onboarding · 28 Aug</span></span></a>
+      <a class="setup-link" href="#" data-open="job"><span class="badge">1</span>Set up another repo</a>
+    </aside>
+
+    <div class="col">
+      <!-- ============================================================ THE KIT -->
+      <article class="kit rv" style="--i:2">
+        <div class="top"><span><span class="v">v0.2.0</span> · s0nderlabs/imaji · <span class="num">28 Aug 2026</span></span><a href="#" style="color:var(--ink-2)">Release notes</a></div>
+        <h1>Every release gets a <em>film</em></h1>
+        <p class="made measure">Your Mind read the release, remembered <b>v0.1.0</b>, and wrote this kit in <b>2 min 41 s</b>. imaji rendered the card in 2 s; the film took 12 s.</p>
+
+        <div class="media">
+          <figure>
+            <div class="card-img"><img src="{{CARD}}" alt="The v0.2.0 card: Every release now ships a ten-second film"></div>
+            <figcaption><span>The card, 1200 × 630</span><a href="#">Open</a></figcaption>
+          </figure>
+          <figure>
+            <div class="film">
+              <img src="{{CARD}}" alt="">
+              <div class="play"><span><svg><use href="#i-play"/></svg>Play</span></div>
+              <div class="wait">
+                <div class="loader"><span class="px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="shimmer">Rendering the film</span><span class="clock" id="clock">0.0s</span></div>
+                <div class="err"><b>The film did not render</b><span>The card is fine. Retry queues only the film.</span><button data-film-set="rendering">Try again</button></div>
+              </div>
+            </div>
+            <figcaption><span id="film-cap">The film, rendering</span><a href="#">Open</a></figcaption>
+          </figure>
+        </div>
+
+        <div class="words">
+          <section class="w wide">
+            <div class="wh"><h2>The tweet</h2><button class="btn quiet copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div>
+            <div class="body"><p class="tweet measure" id="tweet" data-text="imaji v0.2.0: your Mind now renders a 10-second film for every release, not just the card. Tag a release, get the kit. No prompts, no content calendar."><span class="txt"></span><span class="caret"></span></p></div>
+          </section>
+          <section class="w">
+            <div class="wh"><h2>The thread</h2><button class="btn quiet copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div>
+            <div class="body"><ol class="thread">
+              <li><span class="n">1</span><p>v0.2.0 is out. What changed: the film. Every release now gets a 10-second launch video rendered from HTML, on brand, deterministic, no diffusion model guessing at your logo.</p></li>
+              <li><span class="n">2</span><p>How it works: you tag a release, a GitHub Action wakes your own Mind, the Mind reads the notes, remembers your last release, writes the copy and calls imaji to render the visuals.</p></li>
+              <li><span class="n">3</span><p>Building on v0.1.0, which shipped the card and the private kit page. Next: the Bazaar listing so any Mind can take the job. imaji.s0nderlabs.xyz</p></li>
+            </ol></div>
+          </section>
+          <section class="w">
+            <div class="wh"><h2>For LinkedIn</h2><button class="btn quiet copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div>
+            <div class="body li measure"><p>We shipped imaji v0.2.0.</p><p>Every release your team tags now comes back as a full launch kit: a tweet, a thread, this post, a social card and a 10-second film. Your own Mind writes it, remembering every release before it. imaji only renders.</p><p>For developers who ship real things and refuse to become content creators.</p></div>
+          </section>
+        </div>
+
+        <div class="notes">
+          <p><b>Left out on purpose.</b> Two small fixes are in the release notes but did not earn a beat: long card headlines now step down in size, and literal newlines in Mind copy render as paragraphs.</p>
+          <p><b>What your Mind keeps.</b> v0.2.0 builds on v0.1.0 by making the film real: ten seconds, four beats, rendered frame by frame from HTML, queued right after the card.</p>
+          <p style="font-size:.9em;color:var(--ink-3)">Nothing was posted anywhere. <button class="replay" id="replay">Replay the tweet</button></p>
+        </div>
+      </article>
+
+      <!-- ============================================================ EARLIER KITS -->
+      <div class="earlier rv" style="--i:3">
+        <div class="stack" id="stack"><i></i><i></i><i></i><div class="lbl"><span>2 earlier kits</span><span>v0.1.0 and the onboarding sample</span></div></div>
+        <div class="list">
+          <a class="release" href="#"><span class="l"><b>The card and the private kit page</b><span>Your Mind wrote the tweet, the thread and the post. No film yet.</span></span><span class="r"><span class="v">v0.1.0</span><span class="num">28 Aug</span></span></a>
+          <a class="release" href="#"><span class="l"><b>Your Mind proposed the brand</b><span>Tigerlily, dark ground, a grotesque, and a sample card to correct in chat.</span></span><span class="r"><span class="v">onboarding</span><span class="num">28 Aug</span></span></a>
+          <button class="release" data-earlier-set="stacked" style="justify-content:center;color:var(--ink-3);font-size:.93em;box-shadow:none;background:transparent">Tuck them away</button>
+        </div>
+      </div>
+
+      <!-- ============================================================ SETUP PHASE -->
+      <section class="setup rv" style="--i:4" id="setup">
+        <div class="ph"><span class="badge">1</span><h2>Set up imaji for a repo</h2><span class="est">Three steps, about ten minutes</span><button class="undo" data-setup-set="todo">Show the steps</button></div>
+        <p class="measure">Your Mind takes the job once, the workflow goes in your repo once, and every release you tag after that comes back as a kit like the one above.</p>
+        <div class="steps">
+          <button class="step" data-open="job"><span class="dotn">1</span><span class="t"><b>Hand your Mind the job</b><span>Paste one page into a chat with your own Mind.</span></span><span class="go">2 min</span></button>
+          <button class="step" data-open="workflow"><span class="dotn">2</span><span class="t"><b>Drop the workflow in your repo</b><span>One file and three secrets, then run onboarding once.</span></span><span class="go">5 min</span></button>
+          <button class="step" data-open="token"><span class="dotn">3</span><span class="t"><b>Mint a kit token</b><span>The only credential imaji issues. Shown once.</span></span><span class="go">1 min</span></button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ SHEET -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div class="pane" data-pane="job">
+    <h2>Hand your Mind the job</h2>
+    <p class="est">About two minutes</p>
+    <p>Open a chat with your own Mind and paste this in. It is the whole job: what a kit is, the JSON to answer with, how to call imaji, and when to skip a release and say why. Your Mind confirms in one sentence.</p>
+    <div class="need"><b>You will need</b><ul><li>A Mind on Minds by Animoca Brands</li><li>Five minutes of its attention</li></ul></div>
+    <pre class="slab wrap">{{JOB}}</pre>
+    <div class="acts"><button class="btn quiet" data-close>Later</button><button class="btn primary copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy the job</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div>
+  </div>
+  <div class="pane" data-pane="workflow">
+    <h2>Drop the workflow in your repo</h2>
+    <p class="est">About five minutes</p>
+    <p>Save this as <code class="tok">.github/workflows/imaji.yml</code>. It has two jobs: onboarding, which lets your Mind read the repo once and propose your brand, and release, which runs every time you tag one.</p>
+    <div class="need"><b>Three repository secrets</b><ul class="secrets"><li><code>MINDS_API_KEY</code><span>your Builder API key, from build.hellominds.ai</span></li><li><code>MIND_ID</code><span>your Mind’s id, lowercase</span></li><li><code>IMAJI_KIT_TOKEN</code><span>the token from step three</span></li></ul></div>
+    <pre class="slab">{{WORKFLOW}}</pre>
+    <p style="font-size:.9em;color:var(--ink-3)">Then run onboarding once by hand: Actions, imaji, Run workflow, job: onboard. After that every release runs it on its own.</p>
+    <div class="acts"><button class="btn quiet" data-close>Later</button><button class="btn primary copy"><span class="swap"><span class="a"><svg class="ic"><use href="#i-copy"/></svg>Copy the workflow</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div>
+  </div>
+  <div class="pane" data-pane="token">
+    <h2>Mint a kit token</h2>
+    <p class="est">About a minute</p>
+    <p>The only credential imaji issues. It lets your Mind post kits and belongs in your repository secrets. Your kit pages live at a read id derived from it, so a kit link is safe to share.</p>
+    <div class="field"><input type="text" readonly value="f3XD…B4" aria-label="kit token"><button class="btn quiet copy"><span class="swap"><span class="a">Copy</span><span class="b"><svg class="ic"><use href="#i-check"/></svg>Copied</span></span></button></div>
+    <p style="font-size:.9em;color:var(--ink-3);margin-top:.8em">Shown once. Kits for it appear at <span class="tok">/k/9b67acb83bf6c255a882cd82</span>.</p>
+    <div class="acts"><button class="btn quiet" data-close>Later</button><button class="btn primary" data-setup-set="done" data-close>I’m set up</button></div>
+  </div>
+</div>
+
+<!-- ================================================================ CONTROLS -->
+<button class="ctl-fab" id="fab">controls</button>
+<div class="ctl" id="ctl">
+  <div class="ctl-h"><b>imaji mock controls</b><button id="min">hide</button></div>
+  <div class="ctl-g"><div class="l"><span>Layout</span><span>none of these is the rail</span></div><div class="seg" data-k="layout"><button data-v="stack">Stack</button><button data-v="studio">Studio</button><button data-v="reader">Reader</button></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Theme</span></div><div class="seg" data-k="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div></div><div><div class="l"><span>Paper</span></div><div class="seg" data-k="paper"><button data-v="warm">Warm</button><button data-v="cool">Cool</button></div></div></div>
+  <div class="ctl-g"><div class="l"><span>Type, body and UI</span></div><div class="seg" data-k="font"><button data-v="polysans">PolySans</button><button data-v="diegrotesk">Die Grotesk</button><button data-v="opensauce">Open Sauce</button><button data-v="helvetica">Helvetica Neue</button></div></div>
+  <div class="ctl-g"><div class="l"><span>Type, headings</span></div><div class="seg" data-k="display"><button data-v="same">Same as body</button><button data-v="bulky">PolySans Bulky</button><button data-v="peace">Peace Sans</button><button data-v="adventor">Avant Garde*</button><button data-v="pixel">Pix Geist</button></div></div>
+  <div class="ctl-g"><div class="l"><span>The one coloured word</span></div><div class="seg" data-k="script"><button data-v="none">Same face</button><button data-v="tempting">Tempting script</button></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Texture</span></div><div class="seg" data-k="texture"><button data-v="hatch">Hatch</button><button data-v="grain">Grain</button><button data-v="dots">Dots</button><button data-v="none">None</button></div></div><div><div class="l"><span>Glow</span></div><div class="seg" data-k="glow"><button data-v="on">On</button><button data-v="off">Off</button></div></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Motion</span></div><div class="seg" data-k="motion"><button data-v="full">Full</button><button data-v="calm">Calm</button></div></div><div><div class="l"><span>Film</span></div><div class="seg" data-k="film"><button data-v="rendering">Rendering</button><button data-v="done">Done</button><button data-v="failed">Failed</button></div></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Setup phase</span></div><div class="seg" data-k="setup"><button data-v="todo">To do</button><button data-v="done">Done</button></div></div><div><div class="l"><span>Earlier kits</span></div><div class="seg" data-k="earlier"><button data-v="stacked">Stacked</button><button data-v="open">Listed</button></div></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Scale</span></div><div class="seg" data-k="scale"><button data-v="14">14</button><button data-v="15">15</button><button data-v="16">16</button></div></div><div><div class="l"><span>Density</span></div><div class="seg" data-k="density"><button data-v="compact">Tight</button><button data-v="regular">Regular</button><button data-v="airy">Airy</button></div></div></div>
+  <div class="ctl-g two"><div><div class="l"><span>Radius</span></div><div class="seg" data-k="radius"><button data-v="10">10</button><button data-v="14">14</button><button data-v="18">18</button></div></div><div><div class="l"><span>Wordmark</span></div><div class="seg" data-k="mark"><button data-v="s">S</button><button data-v="m">M</button><button data-v="l">L</button></div></div></div>
+  <div class="ctl-f"><button id="reset">Reset</button><button class="p" id="copy">Copy config</button></div>
+  <div class="cfg" id="cfg"></div>
+  <p class="note">*Avant Garde is shown through TeX Gyre Adventor, its open clone. PolySans and Die Grotesk are trial cuts (letters, digits, basic punctuation). PP Mori, Recoleta, Cooper BT and Berthold have no trial files on this Mac.</p>
+</div>
+
+<script>
+const KEYS = ['layout','theme','paper','font','display','script','texture','glow','motion','film','setup','earlier','scale','density','radius','mark'];
+const DEF = { layout:'stack', theme:'light', paper:'warm', font:'polysans', display:'same', script:'none', texture:'hatch', glow:'on', motion:'full', film:'rendering', setup:'todo', earlier:'stacked', scale:'15', density:'regular', radius:'14', mark:'m' };
+const root = document.documentElement, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+let state = { ...DEF };
+try { Object.assign(state, JSON.parse(localStorage.getItem('imaji-mock-3') || '{}')) } catch {}
+if (location.hash.length > 2) { try { Object.assign(state, JSON.parse(decodeURIComponent(location.hash.slice(1)))) } catch {} }
+
+function render() {
+  for (const k of KEYS) root.dataset[k] = state[k];
+  $$('.seg').forEach(seg => seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === state[seg.dataset.k])));
+  $('#cfg').textContent = JSON.stringify(state);
+  try { localStorage.setItem('imaji-mock-3', JSON.stringify(state)) } catch {}
+  history.replaceState(null, '', '#' + encodeURIComponent(JSON.stringify(state)));
+  if (state.film === 'rendering') startClock(); else stopClock();
+  $('#film-cap').textContent = state.film === 'done' ? 'The film, ten seconds, 1920 × 1080' : state.film === 'failed' ? 'The film did not render' : 'The film, rendering';
+}
+/* reveal: header, kit, stack, setup stagger in once */
+requestAnimationFrame(() => requestAnimationFrame(() => $$('.rv').forEach(e => e.classList.add('in'))));
+/* controls */
+$$('.seg button').forEach(b => b.addEventListener('click', () => { state[b.parentElement.dataset.k] = b.dataset.v; render() }));
+$$('[data-set-theme]').forEach(b => b.addEventListener('click', () => { state.theme = b.dataset.setTheme; render() }));
+$$('[data-film-set]').forEach(b => b.addEventListener('click', () => { state.film = b.dataset.filmSet; render() }));
+$$('[data-setup-set]').forEach(b => b.addEventListener('click', () => { state.setup = b.dataset.setupSet; render() }));
+$$('[data-earlier-set]').forEach(b => b.addEventListener('click', () => { state.earlier = b.dataset.earlierSet; render() }));
+$('#stack').addEventListener('click', () => { state.earlier = 'open'; render() });
+$('#reset').addEventListener('click', () => { state = { ...DEF }; render() });
+$('#copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText('imaji mock config: ' + JSON.stringify(state)) } catch {} const c = $('#cfg'); c.classList.add('show'); setTimeout(() => c.classList.remove('show'), 3000) });
+$('#min').addEventListener('click', () => { const c = $('#ctl'); c.classList.toggle('min'); $('#min').textContent = c.classList.contains('min') ? 'controls' : 'hide' });
+$('#fab').addEventListener('click', () => root.classList.add('ctl-show'));
+/* copy buttons morph to a check, then back */
+$$('.btn.copy').forEach(b => b.addEventListener('click', () => { b.classList.add('done'); clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('done'), 1400) }));
+/* sheet */
+function openSheet(name) { $$('.sheet .pane').forEach(p => p.classList.toggle('on', p.dataset.pane === name)); root.classList.add('sheet-open'); $('#sheet').scrollTop = 0 }
+function closeSheet() { root.classList.remove('sheet-open') }
+$$('[data-open]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); openSheet(b.dataset.open) }));
+$$('[data-close]').forEach(b => b.addEventListener('click', closeSheet));
+$('#scrim').addEventListener('click', closeSheet);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet() });
+$('#go-setup').addEventListener('click', e => { e.preventDefault(); if (state.layout === 'studio' && innerWidth > 760) openSheet('job'); else { state.setup = 'todo'; render(); $('#setup').scrollIntoView({ behavior: state.motion === 'calm' ? 'auto' : 'smooth', block: 'start' }) } });
+/* film clock */
+let clockT = null, clockStart = 0;
+function startClock() { if (clockT) return; clockStart = performance.now(); clockT = setInterval(() => { const s = (performance.now() - clockStart) / 1000 + 6.4; $('#clock').textContent = s.toFixed(1) + 's' }, 100) }
+function stopClock() { clearInterval(clockT); clockT = null }
+/* the tweet streams in */
+let streamT = null;
+function stream() {
+  const p = $('#tweet'), t = p.dataset.text, out = p.querySelector('.txt');
+  clearInterval(streamT); p.classList.remove('done'); out.textContent = '';
+  if (state.motion === 'calm') { out.textContent = t; p.classList.add('done'); return }
+  let i = 0;
+  streamT = setInterval(() => { i += 1 + (Math.random() < .25 ? 1 : 0); out.textContent = t.slice(0, i); if (i >= t.length) { clearInterval(streamT); p.classList.add('done') } }, 22);
+}
+$('#replay').addEventListener('click', stream);
+render(); setTimeout(stream, 500);
+</script>
+</body>
+</html>

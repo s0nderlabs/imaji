@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>imaji film</title>
+<link rel="stylesheet" href="../../vendor/fonts/vendored.css">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow:hidden;background:#1A1614}
+
+.stage{
+  --ground:#1A1614;
+  --ink:#F3EFE8;
+  --ink-2:#A69E94;
+  --line:rgba(243,239,232,0.15);
+  --accent:#E2583E;
+  --accent-ink:#1A1614;
+  --font-display:'Adventor','Open Sauce One',"Helvetica Neue",Helvetica,sans-serif;
+  --font-text:'Open Sauce One',"Helvetica Neue",Helvetica,sans-serif;
+  --font-mono:'Geist Pixel',ui-monospace,monospace;
+
+  position:relative;
+  width:1920px;height:1080px;
+  overflow:hidden;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--font-text);
+  -webkit-font-smoothing:antialiased;
+}
+.stage[data-ground="light"]{
+  --ground:#F7F4EE;
+  --ink:#1C1714;
+  --ink-2:#756D63;
+  --line:rgba(28,23,20,0.14);
+  --accent-ink:#F7F4EE;
+}
+.stage[data-type="serif"]{
+  --font-display:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --font-text:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+}
+.stage[data-type="mono"]{
+  --font-display:ui-monospace,"SF Mono",Menlo,monospace;
+  --font-text:ui-monospace,"SF Mono",Menlo,monospace;
+}
+
+/* every beat is one absolutely positioned scene inside the 96px safe area;
+   exactly one is painted at a time, which keeps each rendered frame cheap */
+.scene{
+  position:absolute;
+  left:96px;right:96px;top:96px;bottom:96px;
+  display:flex;
+  opacity:0;
+}
+.scene-open{flex-direction:column;align-items:center;justify-content:center}
+.scene-thesis{flex-direction:column;align-items:flex-start;justify-content:center}
+.scene-lines{flex-direction:column;align-items:flex-start;justify-content:center;gap:38px}
+.scene-close{flex-direction:column;align-items:center;justify-content:center}
+
+.mark{
+  font-family:var(--font-display);
+  font-weight:700;
+  letter-spacing:-0.02em;
+  line-height:1;
+  color:var(--ink);
+  white-space:nowrap;
+}
+.mark .ch{display:inline-block}
+.mark img{display:block;width:auto}
+.mark-lg{font-size:154px}
+.mark-lg img{height:300px;max-width:1300px}
+.mark-sm{font-size:60px}
+.mark-sm img{height:100px;max-width:700px}
+
+.rule{height:2px;background:var(--ink-2);opacity:0.55;border-radius:1px;width:0}
+.rule-open{margin-top:38px}
+.rule-close{margin-top:40px}
+
+/* the version is a quiet pixel tag; the accent belongs to the headline word */
+.version{
+  font-family:var(--font-mono);
+  font-size:34px;line-height:1;
+  color:var(--ink-2);
+  white-space:nowrap;
+}
+.version-open{margin-top:44px}
+
+.meta-row{display:flex;align-items:center;gap:28px;margin-top:40px}
+.url{
+  font-family:var(--font-text);
+  font-size:30px;line-height:1;
+  color:var(--ink-2);
+  white-space:nowrap;
+}
+
+.headline{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:150px;
+  line-height:1.02;
+  letter-spacing:-0.024em;
+  color:var(--ink);
+  margin:0;
+  width:100%;
+  position:relative;
+  z-index:0;
+  /* the font-size ladder bottoms out at 0.58, so a single token longer than
+     about 48 characters would still run off a 1920px stage and be clipped.
+     Let it break rather than clip; the nowrap that used to hold a word
+     together while it typed on is what defeated this. */
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.headline .w{display:inline-block;overflow-wrap:anywhere}
+.headline .ch{display:inline-block;opacity:0}
+.headline .ch.is-on{opacity:1}
+.acc{position:relative;display:inline-block}
+/* Adventor puts its descender ink 1.073em below the top of a 1.02em line box,
+   so a block that stops at the box floor cuts the tail off a "g". The insets
+   are the same on both sides (the word's own width defines the block, never
+   the space beside it) and the bottom is let out far enough that a descender
+   sits inside. z-index keeps it behind every glyph in the headline, so the
+   small bleed past the line box can never paint over a neighbouring line. */
+.acc .acc-block{
+  position:absolute;
+  left:-0.14em;right:-0.14em;top:0.02em;bottom:-0.14em;
+  z-index:-1;
+  background:var(--accent);
+  border-radius:0.07em;
+  transform:scaleX(0);
+  transform-origin:0% 50%;
+}
+.acc .acc-chars{position:relative}
+
+.line{
+  display:flex;align-items:baseline;gap:30px;
+  font-size:62px;line-height:1.18;
+  font-weight:400;
+  letter-spacing:-0.012em;
+  color:var(--ink);
+  width:100%;
+}
+.line .dash{
+  flex:0 0 auto;
+  width:34px;height:2px;
+  background:var(--ink-2);
+  border-radius:1px;
+  transform:translateY(-0.36em);
+}
+.line .txt{flex:1 1 auto}
+
+.closing{
+  font-family:var(--font-display);
+  font-size:84px;line-height:1.1;
+  font-weight:700;
+  letter-spacing:-0.012em;
+  color:var(--ink);
+  text-align:center;
+  margin:44px 0 0;
+  max-width:1500px;
+}
+.closing .w{display:inline-block}
+
+/* ---------- portrait, 1080x1920 ---------- */
+/* The same four beats on a phone-shaped stage. The safe area is 72px, which
+   leaves the full 936px type column the reading beats are set in. The two
+   reading beats (thesis, lines) are centred on the optical centre of a phone
+   frame rather than the true middle: the box is shortened at the bottom so
+   its middle lands at 46% of the height. The sign-off keeps its centred
+   stack but inside a 10% side safe area, so a long url has somewhere to
+   break. Timings and beat order are shared with landscape. */
+.stage[data-orientation="portrait"]{width:1080px;height:1920px}
+.stage[data-orientation="portrait"] .scene{left:72px;right:72px;top:72px;bottom:72px}
+/* 72 + (1920 - 72 - 225.6)/2 = 883.2 = 0.46 * 1920 */
+.stage[data-orientation="portrait"] .scene-thesis,
+.stage[data-orientation="portrait"] .scene-lines{bottom:225.6px}
+.stage[data-orientation="portrait"] .scene-lines{gap:32px}
+/* the sign-off sits inside 108px = 10% of the width on each side */
+.stage[data-orientation="portrait"] .scene-close{left:108px;right:108px}
+
+/* the opening wordmark reads at 44% of the stage width, not a quarter of it */
+.stage[data-orientation="portrait"] .mark-lg{font-size:190px}
+.stage[data-orientation="portrait"] .mark-lg img{width:570px;height:auto;max-width:936px}
+.stage[data-orientation="portrait"] .mark-sm{font-size:72px}
+.stage[data-orientation="portrait"] .mark-sm img{height:120px;max-width:700px}
+
+.stage[data-orientation="portrait"] .rule-open{margin-top:34px}
+.stage[data-orientation="portrait"] .rule-close{margin-top:34px}
+.stage[data-orientation="portrait"] .version{font-size:32px}
+.stage[data-orientation="portrait"] .version-open{margin-top:36px}
+/* the meta row stacks so a url that will not fit on one line breaks instead
+   of running under the 10% side safe area */
+.stage[data-orientation="portrait"] .meta-row{flex-direction:column;gap:18px;margin-top:34px;max-width:864px}
+.stage[data-orientation="portrait"] .url{font-size:30px;line-height:1.24;white-space:normal;text-align:center;max-width:864px;overflow-wrap:anywhere}
+
+.stage[data-orientation="portrait"] .headline{font-size:112px}
+.stage[data-orientation="portrait"] .line{font-size:52px;gap:24px}
+.stage[data-orientation="portrait"] .line .dash{width:28px}
+.stage[data-orientation="portrait"] .closing{font-size:64px;margin-top:36px;max-width:864px}
+</style>
+</head>
+<body>
+<div class="stage" data-composition-id="imaji-film" data-width="1920" data-height="1080">
+
+  <div class="scene scene-open" data-scene="open">
+    <div class="mark mark-lg" data-open-mark></div>
+    <div class="rule rule-open" data-open-rule></div>
+    <div class="version version-open" data-open-pill></div>
+  </div>
+
+  <div class="scene scene-thesis" data-scene="thesis">
+    <h1 class="headline" data-headline></h1>
+  </div>
+
+  <div class="scene scene-lines" data-scene="lines"></div>
+
+  <div class="scene scene-close" data-scene="close">
+    <div class="mark mark-sm" data-close-mark></div>
+    <p class="closing" data-closing></p>
+    <div class="rule rule-close" data-close-rule></div>
+    <div class="meta-row">
+      <span class="version" data-close-pill></span>
+      <span class="url" data-close-url></span>
+    </div>
+  </div>
+
+</div>
+<script src="../../vendor/gsap.min.js"></script>
+<script>/*__IMAJI_VARS__*/</script>
+<script>
+(function () {
+  var V = window.IMAJI_VARS || {}
+  var stage = document.querySelector("[data-composition-id]")
+  var q = function (sel) { return stage.querySelector(sel) }
+  var qa = function (sel) { return Array.prototype.slice.call(stage.querySelectorAll(sel)) }
+
+  /* orientation is the only shape switch: "portrait" gives a 1080x1920 stage,
+     anything else (including a missing value) keeps the 1920x1080 default.
+     data-width / data-height are rewritten here because the renderer reads
+     the stage size off those attributes and pins the viewport to it. */
+  var PORTRAIT = V.orientation === "portrait"
+  stage.setAttribute("data-orientation", PORTRAIT ? "portrait" : "landscape")
+  if (PORTRAIT) {
+    stage.setAttribute("data-width", "1080")
+    stage.setAttribute("data-height", "1920")
+  }
+
+  stage.setAttribute("data-ground", V.ground === "light" ? "light" : "dark")
+  stage.setAttribute("data-type", V.type || "grotesque")
+  if (V.accent) stage.style.setProperty("--accent", V.accent)
+
+  /* look: type scale and motion tempo only. The film stays 10 seconds long
+     whatever the look; tempo changes how fast each beat resolves inside its
+     own slot, not where the slots sit. */
+  var LOOK = V.look === "punchy" ? { scale: 1.06, tempo: 1.3 }
+           : V.look === "quiet"  ? { scale: 0.94, tempo: 0.8 }
+           : { scale: 1, tempo: 1 }
+  var T = LOOK.tempo
+  var d = function (seconds) { return seconds / T }
+
+  var accentInk = getComputedStyle(stage).getPropertyValue("--accent-ink").trim() || "#1A1614"
+  var inkColor = getComputedStyle(stage).getPropertyValue("--ink").trim() || "#F3EFE8"
+  var ink2Color = getComputedStyle(stage).getPropertyValue("--ink-2").trim() || "#A69E94"
+
+  /* ---------- content ---------- */
+
+  function spanChars(el, text) {
+    el.innerHTML = ""
+    var spans = []
+    var chars = String(text).split("")
+    for (var i = 0; i < chars.length; i++) {
+      var s = document.createElement("span")
+      s.className = "ch"
+      s.textContent = chars[i] === " " ? " " : chars[i]
+      el.appendChild(s)
+      spans.push(s)
+    }
+    return spans
+  }
+
+  function buildMark(el, useChars) {
+    if (V.logoDataUrl) {
+      var img = document.createElement("img")
+      img.src = V.logoDataUrl
+      img.alt = ""
+      el.appendChild(img)
+      return { logo: true, parts: [img] }
+    }
+    var text = V.brandName || ""
+    if (!useChars) { el.textContent = text; return { logo: false, parts: [el] } }
+    return { logo: false, parts: spanChars(el, text) }
+  }
+
+  var openMark = buildMark(q("[data-open-mark]"), true)
+  var closeMark = buildMark(q("[data-close-mark]"), false)
+  var openRule = q("[data-open-rule]")
+  var closeRule = q("[data-close-rule]")
+  var openPill = q("[data-open-pill]")
+  var closePill = q("[data-close-pill]")
+  var closeUrl = q("[data-close-url]")
+
+  openPill.textContent = V.version || ""
+  var url = (V.url || "").replace(/^https?:\/\//, "").replace(/\/$/, "")
+
+  /* the closing line is the Mind's own sentence and it often already carries
+     the version or the url. Whatever it already says, the meta row does not
+     repeat: it shows only the piece that is missing, and disappears when the
+     sentence covers both. */
+  var closingText = String(V.closing || "").toLowerCase()
+  var showVersion = !!V.version && closingText.indexOf(String(V.version).toLowerCase()) === -1
+  var showUrl = !!url && closingText.indexOf(url.toLowerCase()) === -1
+  closePill.textContent = showVersion ? V.version : ""
+  closeUrl.textContent = showUrl ? url : ""
+  if (!showVersion) closePill.style.display = "none"
+  if (!showUrl) closeUrl.style.display = "none"
+  var metaRow = q(".meta-row")
+  var showMeta = showVersion || showUrl
+  if (!showMeta) metaRow.style.display = "none"
+
+  /* headline, split into words then characters, with the accent word wrapped
+     in a block that wipes in behind it. Chars keep their space at all times
+     (opacity, never display) so nothing reflows while the line types on. */
+  var headline = q("[data-headline]")
+  var headlineChars = []
+  var accWrap = null
+  var accChars = []
+  var accBlock = null
+  ;(function buildHeadline() {
+    var text = V.headline || ""
+    var accentWord = (V.accentWord || "").toLowerCase()
+    var parts = text.split(/(\s+)/)
+    var used = false
+    headline.innerHTML = ""
+    for (var i = 0; i < parts.length; i++) {
+      var part = parts[i]
+      if (!part) continue
+      if (/^\s+$/.test(part)) {
+        /* a real text node, not an inline-block span: collapsible whitespace
+           is dropped at a line break, so a wrapped line never opens with a
+           leading space the way a white-space:pre span made it */
+        headline.appendChild(document.createTextNode(" "))
+        continue
+      }
+      var bare = part.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "").toLowerCase()
+      var word = document.createElement("span")
+      word.className = "w"
+      if (!used && accentWord && bare === accentWord) {
+        used = true
+        accWrap = document.createElement("span")
+        accWrap.className = "acc"
+        accBlock = document.createElement("span")
+        accBlock.className = "acc-block"
+        var accInner = document.createElement("span")
+        accInner.className = "acc-chars"
+        accChars = spanChars(accInner, part)
+        accWrap.appendChild(accBlock)
+        accWrap.appendChild(accInner)
+        word.appendChild(accWrap)
+        headlineChars = headlineChars.concat(accChars)
+      } else {
+        var chars = spanChars(word, part)
+        headlineChars = headlineChars.concat(chars)
+      }
+      headline.appendChild(word)
+    }
+  })()
+
+  /* three lines, each with a neutral dash marker */
+  var linesScene = q('[data-scene="lines"]')
+  var lineEls = []
+  var lineTexts = Array.isArray(V.lines) ? V.lines : []
+  for (var li = 0; li < lineTexts.length; li++) {
+    var row = document.createElement("div")
+    row.className = "line"
+    var dash = document.createElement("span")
+    dash.className = "dash"
+    var txt = document.createElement("span")
+    txt.className = "txt"
+    txt.textContent = lineTexts[li]
+    row.appendChild(dash)
+    row.appendChild(txt)
+    linesScene.appendChild(row)
+    lineEls.push(row)
+  }
+
+  /* closing, split per word for the sign-off rise */
+  var closing = q("[data-closing]")
+  var closingWords = []
+  ;(function buildClosing() {
+    var text = V.closing || ""
+    closing.innerHTML = ""
+    var words = text.split(/\s+/).filter(Boolean)
+    for (var i = 0; i < words.length; i++) {
+      var w = document.createElement("span")
+      w.className = "w"
+      w.textContent = words[i]
+      closing.appendChild(w)
+      closingWords.push(w)
+      if (i < words.length - 1) closing.appendChild(document.createTextNode(" "))
+    }
+  })()
+
+  /* ---------- fit: nothing may overflow the stage ---------- */
+
+  var scenes = {
+    open: q('[data-scene="open"]'),
+    thesis: q('[data-scene="thesis"]'),
+    lines: q('[data-scene="lines"]'),
+    close: q('[data-scene="close"]')
+  }
+
+  /* Step down until the block fits its scene. The first step is the size the
+     beat is designed at, so a short line fills the frame and only a long one
+     is reduced. A single unbreakable word is caught by the scrollWidth test. */
+  /* the design sizes per orientation, and the ladders that walk down from
+     them. Portrait reads in a 936px column instead of a 1728px one, so both
+     ladders get two extra rungs below the landscape floor; landscape keeps
+     exactly the rungs it always had. */
+  var BASE = PORTRAIT
+    ? { headline: 112, line: 52, closing: 64, mark: 190 }
+    : { headline: 150, line: 62, closing: 84, mark: 154 }
+  var BLOCK_LADDER = PORTRAIT ? [1, 0.84, 0.7, 0.58, 0.48, 0.4] : [1, 0.84, 0.7, 0.58]
+  var LINE_LADDER = PORTRAIT ? [1, 0.84, 0.7, 0.58, 0.48] : [1, 0.84, 0.7]
+  var MARK_LADDER = PORTRAIT ? [1, 0.8, 0.64, 0.5, 0.4] : [1, 0.8, 0.64]
+
+  function fitBlock(el, basePx, sceneEl) {
+    for (var k = 0; k < BLOCK_LADDER.length; k++) {
+      el.style.fontSize = (basePx * BLOCK_LADDER[k]).toFixed(2) + "px"
+      if (el.scrollWidth <= el.clientWidth + 1 && sceneEl.scrollHeight <= sceneEl.clientHeight) return
+    }
+  }
+
+  function fitAll() {
+    /* the chars are hidden by opacity, so measuring is safe at any point */
+    fitBlock(headline, BASE.headline * LOOK.scale, scenes.thesis)
+    var lineBase = BASE.line * LOOK.scale
+    for (var k = 0; k < LINE_LADDER.length; k++) {
+      for (var i = 0; i < lineEls.length; i++) lineEls[i].style.fontSize = (lineBase * LINE_LADDER[k]).toFixed(2) + "px"
+      if (scenes.lines.scrollHeight <= scenes.lines.clientHeight) break
+    }
+    fitBlock(closing, BASE.closing * LOOK.scale, scenes.close)
+    var markEl = q("[data-open-mark]")
+    for (var m = 0; m < MARK_LADDER.length; m++) {
+      markEl.style.fontSize = (BASE.mark * LOOK.scale * MARK_LADDER[m]).toFixed(2) + "px"
+      if (markEl.scrollWidth <= scenes.open.clientWidth) break
+    }
+  }
+
+  /* ---------- the one timeline ---------- */
+
+  function reveal(count) {
+    var k = Math.max(0, Math.min(headlineChars.length, Math.floor(count)))
+    for (var i = 0; i < headlineChars.length; i++) {
+      if (i < k) headlineChars[i].classList.add("is-on")
+      else headlineChars[i].classList.remove("is-on")
+    }
+  }
+
+  function build() {
+    fitAll()
+
+    var openMarkEl = q("[data-open-mark]")
+    var openWidth = openMarkEl.offsetWidth || 320
+    var closeWidth = PORTRAIT
+      ? Math.max(200, Math.min(620, closing.offsetWidth || 400))
+      : Math.max(240, Math.min(760, closing.offsetWidth || 480))
+
+    /* rest state, all of it with gsap.set, never gsap.from */
+    gsap.set([scenes.thesis, scenes.lines, scenes.close], { opacity: 0, y: 0 })
+    /* the open beat is already ON at t = 0. The first frame of the file is the
+       autoplay thumbnail on every platform, so it can never be an empty
+       stage: the wordmark is at full opacity in its final position from the
+       very first frame and the beat adds its motion after. */
+    gsap.set(scenes.open, { opacity: 1, y: 0 })
+    gsap.set(openMark.parts, { opacity: 1, y: 0 })
+    gsap.set(openMarkEl, { scale: 1.02, transformOrigin: "50% 50%" })
+    gsap.set([openRule, closeRule], { width: 0 })
+    gsap.set(openPill, { opacity: 0, y: 22 })
+    gsap.set(metaRow, { opacity: 0, y: 14 })
+    gsap.set(closeMark.parts, { opacity: 0, y: 24 })
+    gsap.set(closingWords, { opacity: 0, y: 24 })
+    gsap.set(lineEls, { opacity: 0, y: 40, color: inkColor })
+    if (accBlock) gsap.set(accBlock, { scaleX: 0 })
+    if (accChars.length) gsap.set(accChars, { color: inkColor })
+
+    var tl = gsap.timeline({ paused: true })
+
+    /* the four slots, fixed. A look changes how fast a beat resolves inside
+       its slot, never where the slots sit, so the file is always 10.00 s.
+       open 0.0-1.9, thesis 1.9-4.9, lines 4.9-7.6, sign-off 7.6-10.0. */
+    var OPEN_END = 1.9, THESIS_IN = 1.9, THESIS_END = 4.9
+    var LINES_IN = 4.9, LINES_END = 7.6, CLOSE_IN = 7.6
+    /* a beat leaves over EXIT seconds and the next arrives at the boundary.
+       The leaving beat is given a slightly longer tail than the gap it starts
+       in, so at the boundary itself it is still faintly on: without the tail
+       both beats sit at zero for exactly one frame and the film blinks black
+       in the middle. Nothing may ever produce an empty frame. */
+    var EXIT = 0.35, EXIT_TAIL = 0.05
+
+    /* a slot with a hold to protect is timed with ds(): the shorter of the
+       designed duration and the look's tempo, so "quiet" can never stretch a
+       beat past the end of its slot. */
+    var ds = function (seconds) { return Math.min(seconds, d(seconds)) }
+
+    /* beat 1, the wordmark is already there and settles */
+    tl.to(openMarkEl, { scale: 1, duration: ds(0.85), ease: "power3.out" }, 0)
+    tl.to(openRule, { width: openWidth, duration: ds(0.65), ease: "power3.out" }, 0.30)
+    tl.to(openPill, { opacity: 1, y: 0, duration: ds(0.6), ease: "power3.out" }, 0.60)
+    tl.to(scenes.open, { opacity: 0, y: -46, duration: EXIT + EXIT_TAIL, ease: "power2.in" }, OPEN_END - EXIT)
+
+    /* beat 2, the thesis types on and the accent word blocks in */
+    var n = headlineChars.length
+    var typeDur = Math.max(0.9, Math.min(1.8, n * 0.028))
+    /* the counter starts at one, not zero: a type-on that begins from nothing
+       leaves the beat's opening frames blank while the scene is already
+       fading in, and a blank frame is never allowed */
+    var counter = { v: 1 }
+    reveal(1)
+    tl.to(scenes.thesis, { opacity: 1, duration: ds(0.3), ease: "power2.out" }, THESIS_IN)
+    tl.to(counter, {
+      v: n, duration: typeDur, ease: "none",
+      onUpdate: function () { reveal(counter.v) }
+    }, THESIS_IN)
+    var blockAt = THESIS_IN + typeDur + 0.08
+    if (accBlock) {
+      tl.to(accBlock, { scaleX: 1, duration: ds(0.5), ease: "expo.out" }, blockAt)
+      tl.to(accChars, { color: accentInk, duration: ds(0.28), ease: "power2.out" }, blockAt + ds(0.16))
+    }
+    tl.to(scenes.thesis, { opacity: 0, y: -46, duration: EXIT + EXIT_TAIL, ease: "power2.in" }, THESIS_END - EXIT)
+
+    /* beat 3, what changed, one line at a time. The last line has to be read,
+       so the row cadence is solved backwards from a 0.9 s hold at full ink
+       before the beat leaves. */
+    var LINE_EXIT = EXIT, LINE_HOLD = 0.9, ROW_DUR = 0.5
+    var firstRowAt = LINES_IN + 0.02
+    var lastRowOn = LINES_END - LINE_EXIT - LINE_HOLD
+    var rowGap = lineEls.length > 1
+      ? Math.max(0.3, Math.min(0.72, (lastRowOn - ROW_DUR - firstRowAt) / (lineEls.length - 1)))
+      : 0
+    tl.to(scenes.lines, { opacity: 1, duration: ds(0.3), ease: "power2.out" }, LINES_IN)
+    for (var i = 0; i < lineEls.length; i++) {
+      var at = firstRowAt + i * rowGap
+      tl.to(lineEls[i], { opacity: 1, y: 0, duration: ds(ROW_DUR), ease: "expo.out" }, at)
+      if (i < lineEls.length - 1) {
+        tl.to(lineEls[i], { color: ink2Color, duration: ds(0.45), ease: "power2.out" }, at + rowGap)
+      }
+    }
+    tl.to(scenes.lines, { opacity: 0, y: -46, duration: LINE_EXIT + EXIT_TAIL, ease: "power2.in" }, LINES_END - LINE_EXIT)
+
+    /* beat 4, the sign-off rhymes with the open and then simply holds: every
+       part of it has landed by 8.0 s, so the finished frame is on screen for
+       the last two full seconds instead of arriving as the file ends. */
+    tl.to(scenes.close, { opacity: 1, duration: ds(0.25), ease: "power2.out" }, CLOSE_IN)
+    tl.to(closeMark.parts, { opacity: 1, y: 0, duration: ds(0.32), ease: "power3.out" }, CLOSE_IN)
+    tl.to(closingWords, { opacity: 1, y: 0, duration: ds(0.28), ease: "power3.out", stagger: ds(0.012) }, CLOSE_IN + 0.02)
+    tl.to(closeRule, { width: closeWidth, duration: ds(0.3), ease: "power3.out" }, CLOSE_IN + 0.06)
+    if (showMeta) tl.to(metaRow, { opacity: 1, y: 0, duration: ds(0.3), ease: "power3.out" }, CLOSE_IN + 0.08)
+
+    /* hold the last frame so the film is exactly ten seconds */
+    tl.to({}, { duration: 0.01 }, 9.99)
+
+    window.__timelines = window.__timelines || {}
+    window.__timelines.main = tl
+    window.IMAJI_READY = true
+  }
+
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(build)
+  else build()
+})()
+</script>
+</body>
+</html>

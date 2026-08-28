@@ -1,0 +1,61 @@
+# Local agent context, never published
+CLAUDE.md
+.claude/
+
+# Env + secrets
+.env
+.env.*
+!.env.example
+
+# Deps + build
+node_modules/
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Runtime
+*.log
+.DS_Store
+.cache/
+tmp/
+next-env.d.ts
+*.pem
+.vercel
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# imaji storage
+data/
+
+# demo video: regenerable captures and renders (bun demo/capture.mjs && bun demo/render.mjs)
+demo/assets/
+demo/out/
+
+# design scratch (logo rounds, mock pages); never ships
+design/logo/out/
+
+# trial / personal-use fonts: used locally, never committed
+design/fonts/polysans/
+design/fonts/polysans-mono/
+design/fonts/die-grotesk/
+design/fonts/free/Tempting.otf
+design/fonts/free/tempting/
+design/fonts/free/*.zip
+
+# design scratch that is regenerable or superseded (layouts + research stay)
+design/frontdoor/out/shots/
+design/frontdoor/out/_dropped/
+design/frontdoor/out/index.html
+design/mocks/out/
+design/logo/*.png
+design/logo/*.jpg
+design/fonts/incoming/
+design/fonts/pp-mori/
+
+# trial cuts, licensed for local use only: copied in by hand, never committed
+public/fonts/trial/

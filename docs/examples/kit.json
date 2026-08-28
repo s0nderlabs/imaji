@@ -1,0 +1,19 @@
+{
+  "version": "v0.2.0",
+  "repo": "s0nderlabs/imaji",
+  "releaseUrl": "https://github.com/s0nderlabs/imaji/releases/tag/v0.2.0",
+  "outputs": ["x", "linkedin", "card", "film"],
+  "look": "editorial",
+  "brand": { "name": "imaji", "accent": "#E2583E", "ground": "dark", "type": "grotesque", "url": "https://imaji.s0nderlabs.xyz" },
+  "tweet": "imaji v0.2.0: your Mind now renders a 10-second film for every release, not just the card. Tag a release, get the kit. No prompts, no content calendar.",
+  "thread": [
+    "v0.2.0 is out. What changed: the film. Every release now gets a 10-second launch video rendered from HTML, on brand, deterministic, no diffusion model guessing at your logo.",
+    "How it works: you tag a release, a GitHub Action wakes your own Mind, the Mind reads the notes, remembers your last release, writes the copy and calls imaji to render the visuals.",
+    "Building on v0.1.0, which shipped the card and the private kit page. Next: the Bazaar listing so any Mind can take the job. imaji.s0nderlabs.xyz"
+  ],
+  "linkedin": "We shipped imaji v0.2.0.\\n\\nEvery release your team tags now comes back as a full launch kit: a tweet, a thread, this post, a social card and a 10-second film. Your own Mind writes it, remembering every release before it. imaji only renders.\\n\\nFor solo builders who only ship.",
+  "card": { "headline": "Every release gets a film", "subline": "Ten seconds, on brand, rendered from HTML by your own Mind", "accentWord": "film" },
+  "film": { "lines": ["A 10-second film per release", "Rendered from HTML, on brand", "Your Mind writes it, imaji renders it"], "closing": "v0.2.0 is live at imaji.s0nderlabs.xyz" },
+  "skipped": [],
+  "memory": "v0.2.0 added the film; v0.1.0 was the card and the private kit page."
+}

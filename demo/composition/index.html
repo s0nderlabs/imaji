@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>imaji launch</title>
+<link rel="stylesheet" href="../../src/render/vendor/fonts/vendored.css">
+<style>
+/* Manrope and Space Mono are the faces the Minds app itself uses; they are
+   downloaded once by demo/capture.mjs and read from disk at render time. */
+@font-face{font-family:"Manrope";font-weight:200 800;font-style:normal;font-display:block;src:url(../assets/fonts/Manrope.woff2) format("woff2")}
+@font-face{font-family:"Space Mono";font-weight:400;font-style:normal;font-display:block;src:url(../assets/fonts/SpaceMono-Regular.ttf) format("truetype")}
+@font-face{font-family:"Space Mono";font-weight:700;font-style:normal;font-display:block;src:url(../assets/fonts/SpaceMono-Bold.ttf) format("truetype")}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow:hidden;background:#F7F4EE}
+
+.stage{
+  /* the paper the whole film sits on */
+  --paper:#F7F4EE;
+  --ink:#1C1714;
+  --muted:#756D63;
+  --faint:#A79E93;
+  --accent:#E2583E;
+  --hair:rgba(28,23,20,0.10);
+  --hair-soft:rgba(28,23,20,0.06);
+
+  /* the terminal and the run log keep their own dark surface */
+  --term:#171310;
+  --term-bar:#1F1A17;
+  --term-ink:#F3EFE8;
+  --term-mid:#A69E94;
+
+  --font-display:'Adventor','Open Sauce One',"Helvetica Neue",Helvetica,sans-serif;
+  --font-text:'Open Sauce One',"Helvetica Neue",Helvetica,sans-serif;
+  --font-pixel:'Geist Pixel',ui-monospace,monospace;
+  --font-mono:'Space Mono',ui-monospace,"SF Mono",Menlo,monospace;
+  --font-app:'Manrope',"Helvetica Neue",Helvetica,sans-serif;
+
+  position:relative;
+  width:1920px;height:1080px;
+  overflow:hidden;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-text);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:geometricPrecision;
+}
+
+/* ---------- the weather ----------
+   Three blurred beams inside a radially feathered mask. Dormant at the start,
+   blooms on the first beat, then one slow deterministic drift on the master
+   timeline. Never a CSS animation, and never loud enough to argue with type. */
+.aurora{
+  position:absolute;inset:0;z-index:0;overflow:hidden;opacity:0.05;
+  -webkit-mask-image:radial-gradient(ellipse 122% 94% at 52% 46%, #000 54%, transparent 100%);
+  mask-image:radial-gradient(ellipse 122% 94% at 52% 46%, #000 54%, transparent 100%);
+}
+.aurora i{position:absolute;display:block;border-radius:999px;filter:blur(78px);will-change:transform,opacity}
+.beamA{width:94%;height:30%;right:-14%;top:8%;opacity:0.16;transform:rotate(13deg);
+  background:linear-gradient(100deg, rgba(226,88,62,0) 2%, #E2583E 16%, #FF8A5E 44%, #FFB08A 70%, rgba(255,176,138,0) 94%)}
+.beamB{width:80%;height:27%;left:-10%;bottom:5%;opacity:0.12;transform:rotate(-11deg);
+  background:linear-gradient(78deg, rgba(143,180,232,0) 4%, #8FB4E8 28%, #B9A6E8 64%, rgba(185,166,232,0) 92%)}
+.beamC{width:30%;height:21%;right:20%;top:38%;opacity:0.10;
+  background:radial-gradient(closest-side, #E2583E 0%, rgba(255,176,138,0.55) 55%, rgba(255,176,138,0) 100%)}
+
+/* paper tooth, fixed seed, no blend mode on a light ground */
+.grain{position:absolute;inset:0;z-index:6;pointer-events:none;opacity:0.028;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 0.11  0 0 0 0 0.09  0 0 0 0 0.08  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+
+.layer{position:absolute;inset:0;opacity:0;z-index:2;will-change:opacity}
+
+/* ---------- statements ---------- */
+
+.say{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:0 150px}
+.l1{
+  position:relative;
+  font-family:var(--font-display);font-weight:700;
+  font-size:100px;line-height:1.08;letter-spacing:-0.03em;
+  color:var(--ink);max-width:1560px;text-wrap:balance;
+}
+.l1.sm{font-size:84px;max-width:1500px}
+.l2{
+  position:relative;margin-top:38px;
+  font-size:35px;line-height:1.42;letter-spacing:-0.004em;
+  color:var(--muted);max-width:1180px;text-wrap:balance;
+}
+.w{display:inline-block;white-space:nowrap}
+.sp{display:inline-block}
+.ch{display:inline-block;opacity:0;white-space:pre}
+.ch.acc{color:var(--accent)}
+.caret{position:absolute;left:0;top:0;width:5px;background:var(--accent);opacity:0;border-radius:2px}
+
+/* the word wipe, cold open and end card only: each word reveals as a gradient
+   sweeps its glyphs from muted to ink */
+.wipe{display:inline-block;white-space:pre;
+  background-image:linear-gradient(90deg, var(--ink) 0%, var(--ink) 42%, var(--muted) 58%, var(--muted) 100%);
+  background-size:260% 100%;background-position:100% 0;background-repeat:no-repeat;
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;-webkit-text-fill-color:transparent}
+.wipe.acc{background-image:linear-gradient(90deg, var(--accent) 0%, var(--accent) 42%, var(--muted) 58%, var(--muted) 100%)}
+
+/* ---------- the mark ---------- */
+
+.mark{position:absolute;display:block}
+.mark img{display:block;height:100%;width:auto}
+
+/* ---------- a window on the paper ----------
+   Every product shot is a still frame at a fixed size. It arrives once and
+   holds. Nothing about it is ever scaled while it is on screen. */
+.frame{position:absolute;border-radius:22px;overflow:hidden;background:var(--term);
+  box-shadow:inset 0 0 0 1px rgba(28,23,20,0.10),
+             0 1px 2px rgba(28,23,20,0.06),
+             0 24px 60px rgba(28,23,20,0.10)}
+.handles i{position:absolute;width:9px;height:9px;border-radius:2px;background:var(--paper);
+  box-shadow:inset 0 0 0 1.5px rgba(117,109,99,0.5)}
+
+/* ---------- terminal ---------- */
+
+.bar{position:absolute;left:0;right:0;top:0;height:60px;z-index:3;
+  display:flex;align-items:center;gap:13px;padding:0 26px;
+  background:var(--term-bar);box-shadow:inset 0 -1px 0 rgba(243,239,232,0.07)}
+.bar s{width:12px;height:12px;border-radius:50%;background:#3A322E;display:block;flex:0 0 auto}
+.bar .t{margin-left:14px;font-size:21px;color:#7D746A;letter-spacing:-0.005em}
+.bd{position:absolute;left:0;right:0;top:60px;bottom:0;padding:34px 44px;overflow:hidden}
+.tl{font-family:var(--font-mono);font-size:28px;line-height:1.6;color:var(--term-mid);
+  white-space:pre-wrap;word-break:break-all;position:relative}
+.tl.cmd{color:var(--term-ink)}
+.tl .p{color:var(--accent)}
+.tl.gap{height:22px;line-height:22px}
+.tl .caret{background:var(--accent)}
+
+/* ---------- the run ---------- */
+
+.stepline{display:flex;align-items:center;gap:22px;padding:12px 0;opacity:0}
+.stepline .tick{width:16px;height:16px;border-radius:50%;flex:0 0 auto;
+  box-shadow:inset 0 0 0 2px rgba(243,239,232,0.22)}
+.stepline .n{font-size:26px;color:var(--term-ink);letter-spacing:-0.008em}
+.msgpane{position:absolute;left:0;right:0;top:60px;bottom:0;overflow:hidden;background:var(--term)}
+.msgpane .roll{position:absolute;left:0;right:0;top:0;padding:30px 44px}
+.mr{font-family:var(--font-mono);font-size:20px;line-height:1.66;color:var(--term-mid);
+  white-space:pre-wrap;word-break:break-word}
+.mr.h{color:var(--accent)}
+.mr.b{color:var(--term-ink)}
+.msgpane .fade{position:absolute;left:0;right:0;bottom:0;height:150px;
+  background:linear-gradient(to bottom,rgba(23,19,16,0) 0%,rgba(23,19,16,0.96) 84%,rgba(23,19,16,1) 100%)}
+.msgpane .fadetop{position:absolute;left:0;right:0;top:0;height:70px;
+  background:linear-gradient(to top,rgba(23,19,16,0) 0%,rgba(23,19,16,1) 90%)}
+
+/* ---------- shots and canvases inside a window ---------- */
+
+.plate{position:absolute;left:0;top:0;transform-origin:0 0}
+.plate img{display:block;width:100%;height:auto}
+.filmcv{position:absolute;display:block;border-radius:8px}
+.reelcv{position:absolute;left:0;top:0;display:block}
+
+/* ---------- the Minds app, rebuilt 1:1 ---------- */
+
+.app{position:absolute;left:0;top:0;width:1920px;height:1080px;background:#0a0a0a;
+  font-family:var(--font-app);overflow:hidden;-webkit-font-smoothing:antialiased;transform-origin:0 0}
+.app *{box-sizing:border-box}
+.rail{position:absolute;left:0;top:0;width:79px;height:1080px;background:#171717}
+.rail::after{content:"";position:absolute;right:0;top:0;bottom:0;width:1px;background:#1c1c1c}
+.rail .it{position:absolute;left:0;width:79px;text-align:center;color:#9a9a9a}
+.rail .it .tile{width:48px;height:48px;margin:0 auto;border-radius:14px;display:flex;align-items:center;justify-content:center;position:relative}
+.rail .it.on .tile{background:#6f83d8}
+.rail .it .lb{font-size:11px;margin-top:5px;letter-spacing:0.01em}
+.rail .it.on .lb{color:#e6e6e6}
+.rail .badge{position:absolute;top:-4px;right:9px;min-width:18px;height:18px;border-radius:9px;background:#f0935b;
+  color:#241206;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.side{position:absolute;left:80px;top:0;width:255px;height:1080px;background:#0d1014}
+.side::after{content:"";position:absolute;right:0;top:0;bottom:0;width:1px;background:#25282c}
+.side .h{position:absolute;left:24px;top:22px;font-size:25px;font-weight:800;letter-spacing:-0.02em;color:#fafafa}
+.side .add{position:absolute;right:22px;top:28px;font-size:14px;font-weight:600;color:#8fa4e8}
+.side .disc{position:absolute;left:24px;top:66px;font-size:11px;letter-spacing:0.06em;color:#7d7d7d}
+.side .disc b{color:#b9b9b9;font-weight:500;margin-left:6px}
+.card{position:absolute;left:20px;width:215px;height:74px;border-radius:12px;background:#262626;padding:12px 14px}
+.card .t{font-size:14px;font-weight:700;color:#f2f2f2;letter-spacing:-0.01em}
+.card .s{font-size:12px;color:#9d9d9d;margin-top:5px}
+.card .g{display:inline-block;width:16px;height:16px;border-radius:5px;background:#3a3a3a;margin-right:8px;vertical-align:-3px}
+.side .dots{position:absolute;left:0;right:0;top:398px;text-align:center;color:#6b6b6b;font-size:13px}
+.side .dots i{display:inline-block;width:6px;height:6px;border-radius:3px;background:#4a4a4a;margin:0 3px;vertical-align:2px}
+.side .dots i.on{background:#9a9a9a}
+.side .cnt{position:absolute;left:24px;top:444px;font-size:11px;letter-spacing:0.06em;color:#8a8a8a}
+.side .mind{position:absolute;left:20px;top:466px;width:224px;height:50px;border-radius:12px;background:#1c2027;display:flex;align-items:center;padding:0 12px;gap:9px}
+.side .mind .av{width:26px;height:26px;border-radius:13px;background:#394f95;color:#dfe4f5;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.side .mind .nm{font-size:14px;font-weight:600;color:#f2f2f2;letter-spacing:-0.01em}
+.side .mind .rw{font-size:11px;color:#f5b384;margin-top:2px}
+.side .mind .rw b{color:#f0935b}
+.side .trow{position:absolute;left:50px;top:524px;width:196px;height:26px;border-radius:8px;background:#22262c;display:flex;align-items:center;padding:0 10px;font-size:12px;color:#cfcfcf;gap:6px}
+.side .trow .ago{margin-left:auto;color:#8a8a8a;font-size:11px}
+.side .foot{position:absolute;left:0;right:1px;bottom:0;height:70px;border-top:1px solid #1e2126;display:flex;align-items:center;padding:0 16px;gap:10px}
+.side .foot .av{width:28px;height:28px;border-radius:14px;background:#2b4a8f;color:#dfe4f5;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.side .foot .n1{font-size:13px;font-weight:600;color:#ededed}
+.side .foot .n2{font-size:11px;color:#8a8a8a;margin-top:2px}
+
+.mainpane{position:absolute;left:336px;top:0;right:0;height:1080px;background:#0a0a0a}
+.hdr{position:absolute;left:0;right:0;top:0;height:55px;background:#191a1c;border-bottom:1px solid #2f3032}
+.hdr .ttl{position:absolute;left:26px;top:9px;width:1450px;font-size:16px;font-weight:700;line-height:20px;color:#fafafa;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.01em}
+.hdr .sub{position:absolute;left:26px;top:31px;font-size:12px;line-height:16px;color:rgba(250,250,250,0.8)}
+.hdr .sub .d{color:#5c5c5c;margin:0 6px}
+.hdr .sub b{color:#f0935b;font-weight:700;font-size:11px}
+.hdr .sub em{color:#f5b384;font-style:normal;font-size:11px}
+
+.thread{position:absolute;left:0;right:0;top:55px;bottom:94px;overflow:hidden}
+.threadroll{position:absolute;left:0;right:0;top:0}
+.col{width:1024px;margin:0 auto;padding:24px 24px 0}
+.divider{display:flex;align-items:center;gap:12px;padding:8px 0}
+.divider i{height:1px;background:#232323;flex:1}
+.divider span{font-size:12px;font-weight:500;color:#a1a1a1}
+.outbound{display:flex;justify-content:flex-end}
+.bubble{max-width:830px;border-radius:16px;background:oklch(0.3 0.06 260);color:oklch(0.95 0.02 260);
+  font-size:15px;font-weight:500;line-height:24.375px;padding:6px 16px;white-space:pre-wrap;
+  max-height:196px;overflow:hidden;position:relative}
+.bubble .clip{position:absolute;left:0;right:0;bottom:0;height:52px;
+  background:linear-gradient(to bottom,rgba(28,44,72,0) 0%,rgba(28,44,72,0.92) 70%,rgba(28,44,72,1) 100%)}
+.meta{display:flex;align-items:center;gap:8px;height:24px;margin-top:6px}
+.meta.right{justify-content:flex-end}
+.meta .cp{width:13px;height:13px;border-radius:3px;box-shadow:inset 0 0 0 1.5px #6e6e6e}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;border:1px solid #2e2e2e;padding:2px 7px;
+  font-size:11px;line-height:16.5px;color:#a1a1a1}
+.pill i{width:9px;height:9px;border-radius:2px;box-shadow:inset 0 0 0 1.5px #6e6e6e}
+.tm{font-size:11px;line-height:16.5px;color:#a1a1a1}
+.tm.el{margin-left:auto;font-variant-numeric:tabular-nums}
+.inbound{display:flex;gap:6px;margin-top:28px}
+.inbound .av{width:24px;height:24px;border-radius:14px;background:#394f95;color:#0f1729;
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.inbound .bodycol{min-width:0;flex:1;padding-right:32px}
+.inbound .who{font-size:12px;line-height:16px;color:#a1a1a1;margin-bottom:6px}
+.para{font-size:15px;font-weight:500;line-height:24.375px;color:#fafafa;margin-bottom:8px}
+.para b{font-weight:700}
+.think{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;line-height:24.375px;color:#fafafa}
+.think i{width:7px;height:7px;border-radius:4px;background:#8c8c8c;display:block}
+.code{background:#151515;border:1px solid #262626;border-radius:10px;padding:14px 16px;margin:6px 0 10px;overflow:hidden}
+.code .cl{font-family:var(--font-mono);font-size:13px;line-height:21px;color:#d2d2d2;white-space:pre;opacity:0;overflow:hidden;text-overflow:clip}
+.tag{font-family:var(--font-pixel);font-size:13px;color:#f0935b;letter-spacing:0.02em}
+
+.composer{position:absolute;left:283px;bottom:12px;width:1024px;height:52px;border-radius:14px;background:#191b1d;
+  border:1px solid #2f3234;display:flex;align-items:center;padding:0 12px;gap:12px}
+.composer .plus{color:#fafafa;font-size:22px;line-height:1;width:24px;text-align:center}
+.composer .ph{font-size:15px;color:#a1a1a1}
+.composer .mic{margin-left:auto;width:30px;height:30px;border-radius:15px;background:#fb8d1d;display:flex;align-items:center;justify-content:center}
+.composer .mic s{display:block;width:8px;height:13px;border-radius:4px;background:#241206}
+
+/* ---------- the end card ---------- */
+
+.end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.end .title{font-family:var(--font-display);font-weight:700;font-size:88px;line-height:1;letter-spacing:-0.03em;position:relative}
+.end .three{margin-top:58px;display:flex;flex-direction:column;align-items:flex-start;gap:22px}
+.end .three div{font-size:42px;line-height:1.2;letter-spacing:-0.014em;color:var(--ink);opacity:0}
+.end .three div i{font-style:normal;color:var(--faint);font-family:var(--font-mono);font-size:23px;margin-right:24px;
+  vertical-align:4px;display:inline-block;width:24px}
+.end .agents{margin-top:42px;font-size:27px;line-height:1.4;color:var(--muted);opacity:0}
+.end .rule{margin-top:50px;height:2px;width:0;background:var(--accent);border-radius:1px}
+.end .live{margin-top:36px;font-family:var(--font-display);font-weight:700;font-size:48px;letter-spacing:-0.024em;opacity:0}
+.end .url{margin-top:16px;font-size:32px;color:var(--muted);opacity:0}
+.end .quiet{margin-top:40px;font-size:24px;color:var(--faint);opacity:0}
+.end .tagline{margin-top:14px;font-size:26px;color:var(--muted);opacity:0}
+
+.black{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:9}
+</style>
+</head>
+<body>
+<div class="stage" data-composition-id="imaji-launch" data-width="1920" data-height="1080"></div>
+
+<script src="../../src/render/vendor/gsap.min.js"></script>
+<script src="../assets/text.js"></script>
+<script src="./build.js"></script>
+</body>
+</html>
