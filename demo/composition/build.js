@@ -298,7 +298,9 @@ function buildPartA() {
   const open = layer()
   const openSay = el("div", "say", open)
   const mark = el("div", "mark", open)
-  mark.style.cssText = "left:50%;top:296px;height:128px;transform:translateX(-50%)"
+  /* centred through gsap (xPercent), not a CSS transform: the entrance tween
+     below owns transform and would otherwise drop the -50% shift */
+  mark.style.cssText = "left:50%;top:296px;height:128px"
   img("../assets/imaji-5b-on-light.svg", "", mark)
   const o1 = el("div", "l1", openSay)
   o1.style.marginTop = "150px"
@@ -411,7 +413,7 @@ function buildPartA() {
 
   /* 1. the cold open */
   tl.set(open, { opacity: 1 }, 0)
-  tl.fromTo(mark, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.3)
+  tl.fromTo(mark, { opacity: 0, y: 14, xPercent: -50 }, { opacity: 1, y: 0, xPercent: -50, duration: 0.9, ease: "power3.out" }, 0.3)
   const openDone = wipe(tl, oWs, 1.5, 0.19, 0.62)
   for (let i = 0; i < oCs2.length; i++) tl.set(oCs2[i], { opacity: 1 }, openDone + 0.34 + i * 0.010)
   tl.set(open, { opacity: 0 }, A.open[1])

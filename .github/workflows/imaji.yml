@@ -1,0 +1,1408 @@
+# imaji. One release in, a whole launch kit out.
+#
+# This file is the bridge, not the brain. It wakes YOUR Mind with the release
+# and prints what comes back; the Mind reads the release, decides what it
+# earns, writes every word and calls imaji to render.
+#
+# Copy this file to .github/workflows/imaji.yml in your own repository.
+#
+# Secrets it needs (Settings, Secrets and variables, Actions):
+#   MINDS_API_KEY     your Minds Builder API key, from build.hellominds.ai/en/console
+#   MIND_ID           the id of YOUR Mind, lowercase
+#   IMAJI_KIT_TOKEN   the kit token you minted on imaji.s0nderlabs.xyz
+#
+# Variables (optional):
+#   IMAJI_BASE_URL        the imaji server, default https://imaji.s0nderlabs.xyz
+#   IMAJI_POST_COMMENT    "true" to comment the kit URL on the release commit
+#
+# Run it once by hand with job = onboard so your Mind can read the repository
+# and propose the brand. After that it runs itself every time you publish a
+# release, and nobody prompts the Mind again.
+name: imaji
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Which job to run"
+        type: choice
+        options: [release, onboard]
+        default: release
+      tag:
+        description: "Release tag to re-run (release job only, defaults to the latest release)"
+        type: string
+        default: ""
+      post_comment:
+        description: "Comment the kit URL on the release commit"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: imaji-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  # Hand the Mind the repository, once, so it can propose the brand itself.
+  onboard:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'onboard'
+    runs-on: ubuntu-latest
+    env:
+      IMAJI_WORK: ${{ runner.temp }}/imaji
+      IMAJI_BASE_URL: ${{ vars.IMAJI_BASE_URL || 'https://imaji.s0nderlabs.xyz' }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Write the imaji helper scripts
+        run: |
+          set -euo pipefail
+          mkdir -p "$IMAJI_WORK"
+          cat > "$IMAJI_WORK/parse-reply.py" <<'IMAJI_PARSE_REPLY_PY'
+          #!/usr/bin/env python3
+          """Read minds-cli JSON on stdin, print the one useful thing in the Mind's reply.
+
+          Input is whatever `minds send --wait` or `minds history` printed on stdout.
+          Output is exactly one line (default mode):
+
+            KIT_URL=<url>          the Mind rendered the kit already and gave us the URL
+            KIT_JSON=<compact>     the Mind wrote the kit but we still have to POST it
+            SKIPPED=<line>         the Mind decided this release does not earn a kit
+            NOTHING                nothing usable in the reply
+
+          Other modes, used by minds-send.sh:
+
+            --emit fingerprint     print the chosen message fingerprint, or nothing
+            --emit text            print the chosen message as plain text
+
+          Filters:
+
+            --after <fingerprint>  ignore messages not newer than this one
+            --exclude-file <path>  ignore a message that is just an echo of this file
+                                   (the message we sent, when polling history)
+
+          stdlib only, python3.9 or newer.
+          """
+
+          import argparse
+          import html
+          import json
+          import re
+          import sys
+
+          TEXT_KEYS = ("messageText", "message_text", "text", "message", "content", "body")
+
+
+          def walk_messages(node, out):
+              if isinstance(node, dict):
+                  fp = node.get("fingerprint")
+                  if isinstance(fp, str) and fp:
+                      for key in TEXT_KEYS:
+                          value = node.get(key)
+                          if isinstance(value, str) and value.strip():
+                              out.append({"fingerprint": fp, "raw": value, "senderType": node.get("senderType")})
+                              break
+                  for value in node.values():
+                      walk_messages(value, out)
+              elif isinstance(node, list):
+                  for value in node:
+                      walk_messages(value, out)
+
+
+          def collect(data):
+              """Every message-looking object in the payload, newest last."""
+              if isinstance(data, dict):
+                  reply = data.get("reply")
+                  if isinstance(reply, dict):
+                      direct = []
+                      walk_messages(reply, direct)
+                      if direct:
+                          return direct
+              found = []
+              walk_messages(data, found)
+              seen = set()
+              unique = []
+              for item in found:
+                  key = (item["fingerprint"], item["raw"][:200])
+                  if key in seen:
+                      continue
+                  seen.add(key)
+                  unique.append(item)
+              unique.sort(key=lambda m: m["fingerprint"])
+              return unique
+
+
+          def to_text(raw):
+              s = re.sub(r"(?is)<(script|style)\b.*?</\1\s*>", " ", raw)
+              s = re.sub(r"(?i)<br\s*/?>", "\n", s)
+              s = re.sub(r"(?i)<li\b[^>]*>", "- ", s)
+              s = re.sub(r"(?i)</(p|div|li|h[1-6]|pre|tr|ul|ol|blockquote)\s*>", "\n", s)
+              s = re.sub(r"<[^>]+>", "", s)
+              s = html.unescape(s)
+              s = s.replace("\u00a0", " ")
+              s = re.sub(r"[ \t]+\n", "\n", s)
+              s = re.sub(r"\n{3,}", "\n\n", s)
+              return s.strip()
+
+
+          def normalise(text):
+              return re.sub(r"\s+", " ", text).strip().lower()
+
+
+          def json_candidates(raw):
+              """Every JSON-looking blob in the reply, best first."""
+              blocks = []
+              for match in re.finditer(r"(?is)<pre[^>]*>\s*<code[^>]*>(.*?)</code>\s*</pre>", raw):
+                  blocks.append(html.unescape(match.group(1)))
+              for match in re.finditer(r"(?is)<code[^>]*>(.*?)</code>", raw):
+                  blocks.append(html.unescape(match.group(1)))
+              text = to_text(raw)
+              for match in re.finditer(r"(?s)```(?:json)?\s*(.*?)```", text):
+                  blocks.append(match.group(1))
+              blocks.append(text)
+              out = []
+              for block in blocks:
+                  block = re.sub(r"^\s*json\s*\n", "", block)
+                  start = block.find("{")
+                  end = block.rfind("}")
+                  if start == -1 or end <= start:
+                      continue
+                  out.append(block[start : end + 1].strip())
+              return out
+
+
+          def extract_kit(raw):
+              for blob in json_candidates(raw):
+                  try:
+                      parsed = json.loads(blob)
+                  except ValueError:
+                      continue
+                  if isinstance(parsed, dict) and isinstance(parsed.get("version"), str) and parsed.get("repo"):
+                      return parsed
+              return None
+
+
+          URL_RE = re.compile(r"https?://[^\s\"'<>)\]}]+/k/[^\s\"'<>)\]}]*")
+
+
+          def extract_kit_url(raw):
+              text = to_text(raw)
+              urls = []
+              for match in URL_RE.finditer(text):
+                  url = match.group(0).rstrip(".,;:!?)'\"\u2019")
+                  if url not in urls:
+                      urls.append(url)
+              if not urls:
+                  return None
+              deep = [u for u in urls if re.search(r"/k/[0-9a-f]{24}/[^/\s]+", u)]
+              return deep[-1] if deep else None
+
+
+          SKIP_RE = re.compile(
+              r"(?i)\b(skip|skipping|skipped|skipping this one|no kit|not shipping a kit|does not earn|doesn't earn)\b"
+          )
+
+
+          def extract_skip(raw):
+              text = to_text(raw)
+              for line in text.splitlines():
+                  line = line.strip().lstrip("-* ").strip()
+                  if not line or not SKIP_RE.search(line):
+                      continue
+                  if len(line) > 300:
+                      for sentence in re.split(r"(?<=[.!?])\s+", line):
+                          if SKIP_RE.search(sentence):
+                              line = sentence.strip()
+                              break
+                  return line[:300]
+              return None
+
+
+          def main():
+              parser = argparse.ArgumentParser(add_help=True)
+              parser.add_argument("--emit", choices=("result", "fingerprint", "text"), default="result")
+              parser.add_argument("--after", default="")
+              parser.add_argument("--exclude-file", default="")
+              args = parser.parse_args()
+
+              try:
+                  data = json.loads(sys.stdin.read() or "null")
+              except ValueError:
+                  data = None
+              if data is None:
+                  print("" if args.emit != "result" else "NOTHING")
+                  return 0
+
+              messages = collect(data)
+              if args.after:
+                  messages = [m for m in messages if m["fingerprint"] > args.after]
+              if args.exclude_file:
+                  try:
+                      with open(args.exclude_file, "r", encoding="utf-8", errors="replace") as handle:
+                          sent = normalise(handle.read())[:160]
+                  except OSError:
+                      sent = ""
+                  if sent:
+                      messages = [m for m in messages if normalise(to_text(m["raw"]))[:160] != sent]
+              if not messages:
+                  print("" if args.emit != "result" else "NOTHING")
+                  return 0
+
+              from_mind = [m for m in messages if m.get("senderType") == 0]
+              chosen = (from_mind or messages)[-1]
+
+              if args.emit == "fingerprint":
+                  print(chosen["fingerprint"])
+                  return 0
+              if args.emit == "text":
+                  print(to_text(chosen["raw"]))
+                  return 0
+
+              raw = chosen["raw"]
+              url = extract_kit_url(raw)
+              if url:
+                  print("KIT_URL=" + url)
+                  return 0
+              kit = extract_kit(raw)
+              skip = extract_skip(raw)
+              if kit is not None:
+                  # JOB.md tells the Mind that a deliberate skip comes back as a kit whose
+                  # outputs list is empty. That is a skip, not something to render.
+                  if isinstance(kit.get("outputs"), list) and not kit["outputs"]:
+                      reasons = kit.get("skipped")
+                      if isinstance(reasons, list) and reasons and isinstance(reasons[0], str):
+                          print("SKIPPED=" + reasons[0].strip()[:300])
+                      else:
+                          print("SKIPPED=" + (skip or "the Mind decided this release does not earn a kit"))
+                      return 0
+                  print("KIT_JSON=" + json.dumps(kit, separators=(",", ":"), ensure_ascii=False))
+                  return 0
+              if skip:
+                  print("SKIPPED=" + skip)
+                  return 0
+              print("NOTHING")
+              return 0
+
+
+          if __name__ == "__main__":
+              sys.exit(main())
+          IMAJI_PARSE_REPLY_PY
+          cat > "$IMAJI_WORK/minds-send.sh" <<'IMAJI_MINDS_SEND_SH'
+          #!/usr/bin/env bash
+          # Send one message to a Mind and come back with the one useful thing in the reply.
+          #
+          # This is the shared half of both imaji jobs: the same send, the same fingerprint
+          # guard, the same history fallback, the same reply extraction. templates/imaji.yml
+          # carries a copy of this file inline, written to disk by a heredoc step, so the
+          # workflow has no dependency on this repo at runtime.
+          #
+          # Usage:
+          #   scripts/minds-send.sh --alias <alias> --mind <mindId> --message-file <path> \
+          #     [--timeout <ms>] [--work-dir <dir>] [--render-fallback]
+          #
+          # Environment:
+          #   MINDS_BUILDER_API_KEY   required, the Builder API key. Never printed.
+          #   IMAJI_BASE_URL          required with --render-fallback
+          #   IMAJI_KIT_TOKEN         required with --render-fallback. Never printed.
+          #   MINDS_CLI               optional, defaults to "bunx @animocabrands/minds-cli@0.1.4"
+          #
+          # Stdout is exactly one line:
+          #   KIT_URL=<url>        the kit is rendered and reachable
+          #   KIT_JSON=<compact>   the Mind wrote a kit, nobody rendered it (no --render-fallback)
+          #   SKIPPED=<line>       the Mind decided this release does not earn a kit
+          #   NOTHING              the Mind replied, but with nothing we can use
+          #   ERROR=<line>         we reached the Mind but the render call failed
+          #
+          # Everything else goes to stderr. Exit is 0 for every Mind level outcome above,
+          # including a skip. Non-zero only for a real failure: bad arguments, auth, rate
+          # limit, no reply at all.
+          set -euo pipefail
+
+          ALIAS=""
+          MIND=""
+          MESSAGE_FILE=""
+          TIMEOUT="300000"
+          WORK_DIR=""
+          RENDER_FALLBACK="no"
+          POLL_TRIES="${IMAJI_POLL_TRIES:-20}"
+          POLL_INTERVAL="${IMAJI_POLL_INTERVAL:-15}"
+
+          while [ $# -gt 0 ]; do
+            case "$1" in
+              --alias) ALIAS="$2"; shift 2 ;;
+              --mind) MIND="$2"; shift 2 ;;
+              --message-file) MESSAGE_FILE="$2"; shift 2 ;;
+              --timeout) TIMEOUT="$2"; shift 2 ;;
+              --work-dir) WORK_DIR="$2"; shift 2 ;;
+              --render-fallback) RENDER_FALLBACK="yes"; shift ;;
+              -h|--help) sed -n '2,32p' "$0"; exit 0 ;;
+              *) echo "minds-send: unknown argument: $1" >&2; exit 2 ;;
+            esac
+          done
+
+          die() { echo "minds-send: $*" >&2; exit 2; }
+
+          [ -n "$ALIAS" ] || die "missing --alias"
+          [ -n "$MIND" ] || die "missing --mind"
+          [ -n "$MESSAGE_FILE" ] || die "missing --message-file"
+          [ -f "$MESSAGE_FILE" ] || die "message file not found: $MESSAGE_FILE"
+          [ -n "${MINDS_BUILDER_API_KEY:-}" ] || die "MINDS_BUILDER_API_KEY is not set"
+
+          # The alias regex the API enforces. Catch it here rather than in a 400.
+          case "$ALIAS" in
+            *[!a-z0-9_-]*) die "alias must match ^[a-z0-9_-]+$, got: $ALIAS" ;;
+          esac
+          # Owner gated routes reject an uppercase Mind ID.
+          MIND="$(printf '%s' "$MIND" | tr '[:upper:]' '[:lower:]')"
+
+          HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+          PARSE="${IMAJI_PARSE_REPLY:-$HERE/parse-reply.py}"
+          [ -f "$PARSE" ] || die "parse-reply.py not found at $PARSE"
+          PY="${PYTHON:-python3}"
+
+          if [ -z "$WORK_DIR" ]; then
+            WORK_DIR="$(mktemp -d)"
+          fi
+          mkdir -p "$WORK_DIR"
+
+          export MINDS_NO_BANNER=1
+          export MINDS_SKIP_VERSION_CHECK=1
+          read -r -a MINDS_CMD <<< "${MINDS_CLI:-bunx @animocabrands/minds-cli@0.1.4}"
+
+          # 1. Ensure the conversation. Idempotent, and the alias is permanent per repo.
+          #    Reusing an alias against a different Mind throws alias_mind_mismatch, which
+          #    is worth failing on: it means MIND_ID changed under a live conversation.
+          echo "minds-send: ensuring conversation $ALIAS" >&2
+          if ! "${MINDS_CMD[@]}" chat create --alias "$ALIAS" --mind "$MIND" > "$WORK_DIR/chat.json" 2> "$WORK_DIR/chat.err"; then
+            sed -e 's/[A-Za-z0-9_-]\{24,\}/[redacted]/g' "$WORK_DIR/chat.err" >&2 || true
+            die "chat create failed for alias $ALIAS"
+          fi
+
+          # 2. Remember where the conversation ends, so a reply can never be mistaken for
+          #    an older message. Every path below is gated on this: a message is only this
+          #    release's reply if its fingerprint is strictly newer than the baseline.
+          #    A fingerprint is "<16 digit zero padded epoch ms>_<uuid>", so a zero padded
+          #    epoch ms is string comparable with one. When history gives us nothing (a
+          #    502, which this platform does return, or a conversation that is empty
+          #    because it is new) we fall back to the clock we are about to send at, minus
+          #    a minute of allowance for skew between this runner and the platform. What we
+          #    never do is fall back to no filter at all: that is how the previous
+          #    release's kit gets reported as this release's.
+          BASELINE=""
+          if "${MINDS_CMD[@]}" history "$ALIAS" --limit 1 > "$WORK_DIR/baseline.json" 2> "$WORK_DIR/baseline.err"; then
+            BASELINE="$("$PY" "$PARSE" --emit fingerprint < "$WORK_DIR/baseline.json" || true)"
+          fi
+          if [ -n "$BASELINE" ]; then
+            echo "minds-send: baseline fingerprint $BASELINE" >&2
+          else
+            BASELINE="$("$PY" -c 'import time; print("%016d" % (int(time.time() * 1000) - 60000))' || true)"
+            [ -n "$BASELINE" ] || die "no baseline fingerprint and no clock to fall back on"
+            echo "minds-send: no baseline from history, falling back to the send clock $BASELINE" >&2
+          fi
+
+          # 3. Send. A full kit takes 134 to 144 seconds of Mind time, so the wait is long
+          #    on purpose. A --wait timeout exits 3 while the reply usually lands a few
+          #    seconds later, which is what step 4 is for.
+          echo "minds-send: sending $(wc -c < "$MESSAGE_FILE" | tr -d ' ') bytes, waiting up to ${TIMEOUT}ms" >&2
+          set +e
+          "${MINDS_CMD[@]}" send "$ALIAS" - --wait --timeout "$TIMEOUT" \
+            < "$MESSAGE_FILE" > "$WORK_DIR/send.json" 2> "$WORK_DIR/send.err"
+          SEND_RC=$?
+          set -e
+
+          REPLY_FILE=""
+          # One guard, every path: newer than the baseline, and not an echo of the message
+          # we just sent. A reply handed straight back by send is not evidence of freshness
+          # on its own, because the CLI skips its own freshness check whenever its internal
+          # history call fails, and then --wait can return the previous release's reply.
+          FILTERS=(--after "$BASELINE" --exclude-file "$MESSAGE_FILE")
+          POLL="no"
+          case "$SEND_RC" in
+            0)
+              FRESH="$("$PY" "$PARSE" --emit fingerprint "${FILTERS[@]}" < "$WORK_DIR/send.json" || true)"
+              if [ -n "$FRESH" ]; then
+                echo "minds-send: send returned reply $FRESH" >&2
+                REPLY_FILE="$WORK_DIR/send.json"
+              else
+                echo "minds-send: send returned nothing newer than the baseline, polling history" >&2
+                POLL="yes"
+              fi
+              ;;
+            3)
+              echo "minds-send: send exited 3 (wait timeout or server error), polling history" >&2
+              POLL="yes"
+              ;;
+            2) sed -e 's/[A-Za-z0-9_-]\{24,\}/[redacted]/g' "$WORK_DIR/send.err" >&2 || true
+               die "send rejected the request (exit 2)" ;;
+            4) echo "minds-send: the Builder API key was rejected (exit 4)" >&2; exit 4 ;;
+            5) echo "minds-send: rate limited (exit 5)" >&2; exit 5 ;;
+            *) sed -e 's/[A-Za-z0-9_-]\{24,\}/[redacted]/g' "$WORK_DIR/send.err" >&2 || true
+               echo "minds-send: send exited $SEND_RC" >&2; exit "$SEND_RC" ;;
+          esac
+
+          if [ "$POLL" = "yes" ]; then
+            i=0
+            while [ "$i" -lt "$POLL_TRIES" ]; do
+              i=$((i + 1))
+              sleep "$POLL_INTERVAL"
+              if ! "${MINDS_CMD[@]}" history "$ALIAS" --limit 5 > "$WORK_DIR/poll.json" 2>/dev/null; then
+                echo "minds-send: poll $i history call failed, retrying" >&2
+                continue
+              fi
+              FOUND="$("$PY" "$PARSE" --emit fingerprint "${FILTERS[@]}" < "$WORK_DIR/poll.json" || true)"
+              if [ -n "$FOUND" ]; then
+                echo "minds-send: poll $i found reply $FOUND" >&2
+                cp "$WORK_DIR/poll.json" "$WORK_DIR/reply-source.json"
+                REPLY_FILE="$WORK_DIR/reply-source.json"
+                break
+              fi
+              echo "minds-send: poll $i, still nothing newer than the baseline" >&2
+            done
+          fi
+
+          if [ -z "$REPLY_FILE" ]; then
+            echo "minds-send: no reply after the wait and $POLL_TRIES polls" >&2
+            exit 3
+          fi
+
+          # 4. Read the reply once, keep the plain text for the log, and decide.
+          "$PY" "$PARSE" --emit text "${FILTERS[@]}" \
+            < "$REPLY_FILE" > "$WORK_DIR/reply.txt" || true
+          RESULT="$("$PY" "$PARSE" "${FILTERS[@]}" < "$REPLY_FILE")"
+
+          # 5. The Mind wrote a kit but never called the endpoint. Do it for it, so a
+          #    forgetful Mind still produces a kit instead of a dead job.
+          case "$RESULT" in
+            KIT_JSON=*)
+              if [ "$RENDER_FALLBACK" = "yes" ]; then
+                [ -n "${IMAJI_BASE_URL:-}" ] || die "--render-fallback needs IMAJI_BASE_URL"
+                [ -n "${IMAJI_KIT_TOKEN:-}" ] || die "--render-fallback needs IMAJI_KIT_TOKEN"
+                printf '%s' "${RESULT#KIT_JSON=}" > "$WORK_DIR/kit.json"
+                echo "minds-send: the Mind did not POST the kit, rendering it here" >&2
+                set +e
+                CODE="$(curl -sS -o "$WORK_DIR/render.json" -w '%{http_code}' --max-time 180 \
+                  -X POST "${IMAJI_BASE_URL%/}/api/render" \
+                  -H "Authorization: Bearer $IMAJI_KIT_TOKEN" \
+                  -H 'Content-Type: application/json' \
+                  --data-binary @"$WORK_DIR/kit.json" 2> "$WORK_DIR/render.err")"
+                CURL_RC=$?
+                set -e
+                if [ "$CURL_RC" -ne 0 ]; then
+                  RESULT="ERROR=render endpoint unreachable (curl exit $CURL_RC)"
+                elif [ "$CODE" != "200" ] && [ "$CODE" != "201" ]; then
+                  RESULT="ERROR=render endpoint answered $CODE"
+                else
+                  URL="$("$PY" -c 'import json,sys
+          try:
+              d = json.load(open(sys.argv[1]))
+          except Exception:
+              d = {}
+          print(d.get("kitUrl") or "")' "$WORK_DIR/render.json")"
+                  if [ -n "$URL" ]; then
+                    RESULT="KIT_URL=$URL"
+                  else
+                    RESULT="ERROR=render endpoint answered $CODE with no kitUrl"
+                  fi
+                fi
+              fi
+              ;;
+          esac
+
+          printf '%s\n' "$RESULT"
+          IMAJI_MINDS_SEND_SH
+          chmod +x "$IMAJI_WORK/minds-send.sh"
+          python3 -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$IMAJI_WORK/parse-reply.py"
+          bash -n "$IMAJI_WORK/minds-send.sh"
+
+      - name: Gather the evidence
+        run: |
+          set -euo pipefail
+          M="$IMAJI_WORK/message.txt"
+          : > "$M"
+
+          # The brief. Everything the Mind needs even if this thread is months old.
+          cat >> "$M" <<'IMAJI_BRIEF'
+          imaji onboarding.
+
+          You are the Mind behind imaji for this repository. Read the evidence at the
+          bottom of this message and propose the brand: the name to use in public, one
+          accent colour as a hex value, whether the ground is light or dark, whether the
+          type is grotesque, serif or mono, and the voice in three adjectives. Remember
+          what you propose. I will correct it in chat if it is wrong, and the correction
+          sticks for every release after this one.
+
+          Then render one sample so I can see it. Produce a kit with version "onboarding",
+          outputs ["card"], and POST it to the render endpoint below. Reply with the brand
+          you chose, one line on why, and the kit URL the endpoint gave you.
+
+          The job, in one paragraph, in case this thread gets long: when a release is
+          published here I send you the notes, you produce the kit JSON (version, repo,
+          releaseUrl, outputs, look, brand, tweet, thread, linkedin, card, film, skipped,
+          memory), you POST that JSON to the render endpoint with the bearer token below,
+          and you reply with the kit URL the endpoint returns plus a one line summary of
+          what you made. The renderer has no taste and no memory: every choice about copy,
+          look and what to leave out is yours. Skipping a release is a valid answer.
+
+          End your reply with the kit JSON in one fenced json block, so the job can
+          recover it if the POST failed.
+
+          IMAJI_BRIEF
+
+          # The endpoint and the token. Written to a file, never echoed to the log.
+          {
+            echo "render endpoint: POST ${IMAJI_BASE_URL%/}/api/render"
+            echo "authorization header: Bearer ${IMAJI_KIT_TOKEN}"
+            echo "content type: application/json"
+            echo
+          } >> "$M"
+
+          # Standing preferences, if the repository keeps any. The file is optional,
+          # and a broken one is a warning, never a failure.
+          if [ -f imaji.json ]; then
+            if PREFS="$(jq -c . imaji.json 2>/dev/null)" && [ -n "$PREFS" ]; then
+              {
+                echo "--- standing preferences from imaji.json ---"
+                printf '%s\n' "$PREFS"
+                echo "--- end imaji.json ---"
+                echo "Honour these for this release unless I overrode them in chat. If they conflict with a rule I gave you in chat, the chat rule wins."
+                echo
+              } >> "$M"
+            else
+              echo "warning: imaji.json is present but does not parse as JSON, continuing without it"
+            fi
+          fi
+
+          {
+            echo "--- evidence ---"
+            echo "repo: $GITHUB_REPOSITORY"
+            echo "default branch: ${DEFAULT_BRANCH:-$GITHUB_REF_NAME}"
+            echo "repo url: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+            echo
+          } >> "$M"
+
+          # package.json, the cheapest description of a project there is.
+          if [ -f package.json ]; then
+            {
+              echo "package.json:"
+              jq -r '{name, description, homepage, version, license}
+                     | to_entries[] | select(.value != null and .value != "")
+                     | "  " + .key + ": " + (.value | tostring)' package.json || true
+              echo
+            } >> "$M"
+          fi
+
+          # Logo candidates. raw.githubusercontent.com only resolves on public repos.
+          LOGOS="$(git ls-files | grep -Ei '(logo|icon|wordmark)[^/]*\.(svg|png)$' | head -10 || true)"
+          if [ -n "$LOGOS" ]; then
+            {
+              echo "logo candidates (fetchable only if this repo is public):"
+              printf '%s\n' "$LOGOS" | while IFS= read -r p; do
+                [ -n "$p" ] || continue
+                echo "  https://raw.githubusercontent.com/$GITHUB_REPOSITORY/${DEFAULT_BRANCH:-$GITHUB_REF_NAME}/$p"
+              done
+              echo
+            } >> "$M"
+          fi
+
+          # Theme tokens already in the repo beat any colour a Mind would invent.
+          THEME_FILES="$(git ls-files | grep -Ei '(globals\.css|theme\.css|tailwind\.config\.[a-z]+)$' | head -10 || true)"
+          if [ -n "$THEME_FILES" ]; then
+            TOKENS="$(printf '%s\n' "$THEME_FILES" | while IFS= read -r p; do
+              [ -f "$p" ] || continue
+              grep -hoE -e '--[A-Za-z0-9_-]+ *: *#[0-9A-Fa-f]{3,8}' "$p" || true
+            done | head -30)"
+            if [ -n "$TOKENS" ]; then
+              {
+                echo "theme tokens found in the repo:"
+                printf '%s\n' "$TOKENS" | sed 's/^/  /'
+                echo
+              } >> "$M"
+            fi
+          fi
+
+          # How this project has talked about itself so far.
+          RELEASES="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=10" \
+            --jq '.[] | "  " + .tag_name + "  " + (.published_at // "") + "\n    "
+                  + ((.body // "") | gsub("\r"; "") | gsub("\n"; " ") | .[0:400])' \
+            2>/dev/null || true)"
+          {
+            echo "last 10 releases:"
+            if [ -n "$RELEASES" ]; then printf '%s\n' "$RELEASES"; else echo "  none yet"; fi
+            echo
+          } >> "$M"
+
+          # The README, last, because it is the longest.
+          README="$(git ls-files | grep -iE '^readme(\.md|\.markdown|\.rst|\.txt)?$' | head -1 || true)"
+          if [ -n "$README" ] && [ -f "$README" ]; then
+            {
+              echo "--- $README, first 6000 characters ---"
+              head -c 6000 "$README"
+              echo
+              echo "--- end $README ---"
+            } >> "$M"
+          fi
+
+          echo "message is $(wc -c < "$M" | tr -d ' ') bytes"
+        env:
+          IMAJI_KIT_TOKEN: ${{ secrets.IMAJI_KIT_TOKEN }}
+
+      - name: Ask the Mind
+        id: mind
+        env:
+          MINDS_BUILDER_API_KEY: ${{ secrets.MINDS_API_KEY }}
+          MIND_ID: ${{ secrets.MIND_ID }}
+          IMAJI_KIT_TOKEN: ${{ secrets.IMAJI_KIT_TOKEN }}
+        run: |
+          set -euo pipefail
+          ALIAS="imaji-$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9_-' '-')"
+          echo "conversation alias: $ALIAS"
+          RESULT="$("$IMAJI_WORK/minds-send.sh" \
+            --alias "$ALIAS" \
+            --mind "$MIND_ID" \
+            --message-file "$IMAJI_WORK/message.txt" \
+            --timeout 300000 \
+            --work-dir "$IMAJI_WORK/run" \
+            --render-fallback)"
+          echo "--- what the Mind said ---"
+          cat "$IMAJI_WORK/run/reply.txt" || true
+          echo "--- end ---"
+          case "$RESULT" in
+            KIT_URL=*) echo "kit_url=${RESULT#KIT_URL=}" >> "$GITHUB_OUTPUT" ;;
+            *) echo "kit_url=" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Summary
+        if: always()
+        run: |
+          set -euo pipefail
+          {
+            echo "## imaji onboarding"
+            echo
+            if [ -n "${KIT_URL:-}" ]; then
+              echo "Sample card: $KIT_URL"
+            else
+              echo "No sample card came back. What the Mind said is in the job log."
+            fi
+            echo
+            echo "Correct the brand by talking to your Mind. It sticks for every release after this."
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          KIT_URL: ${{ steps.mind.outputs.kit_url }}
+
+  # Every published release. This is the whole product.
+  release:
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'release')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      IMAJI_WORK: ${{ runner.temp }}/imaji
+      IMAJI_BASE_URL: ${{ vars.IMAJI_BASE_URL || 'https://imaji.s0nderlabs.xyz' }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Write the imaji helper scripts
+        run: |
+          set -euo pipefail
+          mkdir -p "$IMAJI_WORK"
+          cat > "$IMAJI_WORK/parse-reply.py" <<'IMAJI_PARSE_REPLY_PY'
+          #!/usr/bin/env python3
+          """Read minds-cli JSON on stdin, print the one useful thing in the Mind's reply.
+
+          Input is whatever `minds send --wait` or `minds history` printed on stdout.
+          Output is exactly one line (default mode):
+
+            KIT_URL=<url>          the Mind rendered the kit already and gave us the URL
+            KIT_JSON=<compact>     the Mind wrote the kit but we still have to POST it
+            SKIPPED=<line>         the Mind decided this release does not earn a kit
+            NOTHING                nothing usable in the reply
+
+          Other modes, used by minds-send.sh:
+
+            --emit fingerprint     print the chosen message fingerprint, or nothing
+            --emit text            print the chosen message as plain text
+
+          Filters:
+
+            --after <fingerprint>  ignore messages not newer than this one
+            --exclude-file <path>  ignore a message that is just an echo of this file
+                                   (the message we sent, when polling history)
+
+          stdlib only, python3.9 or newer.
+          """
+
+          import argparse
+          import html
+          import json
+          import re
+          import sys
+
+          TEXT_KEYS = ("messageText", "message_text", "text", "message", "content", "body")
+
+
+          def walk_messages(node, out):
+              if isinstance(node, dict):
+                  fp = node.get("fingerprint")
+                  if isinstance(fp, str) and fp:
+                      for key in TEXT_KEYS:
+                          value = node.get(key)
+                          if isinstance(value, str) and value.strip():
+                              out.append({"fingerprint": fp, "raw": value, "senderType": node.get("senderType")})
+                              break
+                  for value in node.values():
+                      walk_messages(value, out)
+              elif isinstance(node, list):
+                  for value in node:
+                      walk_messages(value, out)
+
+
+          def collect(data):
+              """Every message-looking object in the payload, newest last."""
+              if isinstance(data, dict):
+                  reply = data.get("reply")
+                  if isinstance(reply, dict):
+                      direct = []
+                      walk_messages(reply, direct)
+                      if direct:
+                          return direct
+              found = []
+              walk_messages(data, found)
+              seen = set()
+              unique = []
+              for item in found:
+                  key = (item["fingerprint"], item["raw"][:200])
+                  if key in seen:
+                      continue
+                  seen.add(key)
+                  unique.append(item)
+              unique.sort(key=lambda m: m["fingerprint"])
+              return unique
+
+
+          def to_text(raw):
+              s = re.sub(r"(?is)<(script|style)\b.*?</\1\s*>", " ", raw)
+              s = re.sub(r"(?i)<br\s*/?>", "\n", s)
+              s = re.sub(r"(?i)<li\b[^>]*>", "- ", s)
+              s = re.sub(r"(?i)</(p|div|li|h[1-6]|pre|tr|ul|ol|blockquote)\s*>", "\n", s)
+              s = re.sub(r"<[^>]+>", "", s)
+              s = html.unescape(s)
+              s = s.replace("\u00a0", " ")
+              s = re.sub(r"[ \t]+\n", "\n", s)
+              s = re.sub(r"\n{3,}", "\n\n", s)
+              return s.strip()
+
+
+          def normalise(text):
+              return re.sub(r"\s+", " ", text).strip().lower()
+
+
+          def json_candidates(raw):
+              """Every JSON-looking blob in the reply, best first."""
+              blocks = []
+              for match in re.finditer(r"(?is)<pre[^>]*>\s*<code[^>]*>(.*?)</code>\s*</pre>", raw):
+                  blocks.append(html.unescape(match.group(1)))
+              for match in re.finditer(r"(?is)<code[^>]*>(.*?)</code>", raw):
+                  blocks.append(html.unescape(match.group(1)))
+              text = to_text(raw)
+              for match in re.finditer(r"(?s)```(?:json)?\s*(.*?)```", text):
+                  blocks.append(match.group(1))
+              blocks.append(text)
+              out = []
+              for block in blocks:
+                  block = re.sub(r"^\s*json\s*\n", "", block)
+                  start = block.find("{")
+                  end = block.rfind("}")
+                  if start == -1 or end <= start:
+                      continue
+                  out.append(block[start : end + 1].strip())
+              return out
+
+
+          def extract_kit(raw):
+              for blob in json_candidates(raw):
+                  try:
+                      parsed = json.loads(blob)
+                  except ValueError:
+                      continue
+                  if isinstance(parsed, dict) and isinstance(parsed.get("version"), str) and parsed.get("repo"):
+                      return parsed
+              return None
+
+
+          URL_RE = re.compile(r"https?://[^\s\"'<>)\]}]+/k/[^\s\"'<>)\]}]*")
+
+
+          def extract_kit_url(raw):
+              text = to_text(raw)
+              urls = []
+              for match in URL_RE.finditer(text):
+                  url = match.group(0).rstrip(".,;:!?)'\"\u2019")
+                  if url not in urls:
+                      urls.append(url)
+              if not urls:
+                  return None
+              deep = [u for u in urls if re.search(r"/k/[0-9a-f]{24}/[^/\s]+", u)]
+              return deep[-1] if deep else None
+
+
+          SKIP_RE = re.compile(
+              r"(?i)\b(skip|skipping|skipped|skipping this one|no kit|not shipping a kit|does not earn|doesn't earn)\b"
+          )
+
+
+          def extract_skip(raw):
+              text = to_text(raw)
+              for line in text.splitlines():
+                  line = line.strip().lstrip("-* ").strip()
+                  if not line or not SKIP_RE.search(line):
+                      continue
+                  if len(line) > 300:
+                      for sentence in re.split(r"(?<=[.!?])\s+", line):
+                          if SKIP_RE.search(sentence):
+                              line = sentence.strip()
+                              break
+                  return line[:300]
+              return None
+
+
+          def main():
+              parser = argparse.ArgumentParser(add_help=True)
+              parser.add_argument("--emit", choices=("result", "fingerprint", "text"), default="result")
+              parser.add_argument("--after", default="")
+              parser.add_argument("--exclude-file", default="")
+              args = parser.parse_args()
+
+              try:
+                  data = json.loads(sys.stdin.read() or "null")
+              except ValueError:
+                  data = None
+              if data is None:
+                  print("" if args.emit != "result" else "NOTHING")
+                  return 0
+
+              messages = collect(data)
+              if args.after:
+                  messages = [m for m in messages if m["fingerprint"] > args.after]
+              if args.exclude_file:
+                  try:
+                      with open(args.exclude_file, "r", encoding="utf-8", errors="replace") as handle:
+                          sent = normalise(handle.read())[:160]
+                  except OSError:
+                      sent = ""
+                  if sent:
+                      messages = [m for m in messages if normalise(to_text(m["raw"]))[:160] != sent]
+              if not messages:
+                  print("" if args.emit != "result" else "NOTHING")
+                  return 0
+
+              from_mind = [m for m in messages if m.get("senderType") == 0]
+              chosen = (from_mind or messages)[-1]
+
+              if args.emit == "fingerprint":
+                  print(chosen["fingerprint"])
+                  return 0
+              if args.emit == "text":
+                  print(to_text(chosen["raw"]))
+                  return 0
+
+              raw = chosen["raw"]
+              url = extract_kit_url(raw)
+              if url:
+                  print("KIT_URL=" + url)
+                  return 0
+              kit = extract_kit(raw)
+              skip = extract_skip(raw)
+              if kit is not None:
+                  # JOB.md tells the Mind that a deliberate skip comes back as a kit whose
+                  # outputs list is empty. That is a skip, not something to render.
+                  if isinstance(kit.get("outputs"), list) and not kit["outputs"]:
+                      reasons = kit.get("skipped")
+                      if isinstance(reasons, list) and reasons and isinstance(reasons[0], str):
+                          print("SKIPPED=" + reasons[0].strip()[:300])
+                      else:
+                          print("SKIPPED=" + (skip or "the Mind decided this release does not earn a kit"))
+                      return 0
+                  print("KIT_JSON=" + json.dumps(kit, separators=(",", ":"), ensure_ascii=False))
+                  return 0
+              if skip:
+                  print("SKIPPED=" + skip)
+                  return 0
+              print("NOTHING")
+              return 0
+
+
+          if __name__ == "__main__":
+              sys.exit(main())
+          IMAJI_PARSE_REPLY_PY
+          cat > "$IMAJI_WORK/minds-send.sh" <<'IMAJI_MINDS_SEND_SH'
+          #!/usr/bin/env bash
+          # Send one message to a Mind and come back with the one useful thing in the reply.
+          #
+          # This is the shared half of both imaji jobs: the same send, the same fingerprint
+          # guard, the same history fallback, the same reply extraction. templates/imaji.yml
+          # carries a copy of this file inline, written to disk by a heredoc step, so the
+          # workflow has no dependency on this repo at runtime.
+          #
+          # Usage:
+          #   scripts/minds-send.sh --alias <alias> --mind <mindId> --message-file <path> \
+          #     [--timeout <ms>] [--work-dir <dir>] [--render-fallback]
+          #
+          # Environment:
+          #   MINDS_BUILDER_API_KEY   required, the Builder API key. Never printed.
+          #   IMAJI_BASE_URL          required with --render-fallback
+          #   IMAJI_KIT_TOKEN         required with --render-fallback. Never printed.
+          #   MINDS_CLI               optional, defaults to "bunx @animocabrands/minds-cli@0.1.4"
+          #
+          # Stdout is exactly one line:
+          #   KIT_URL=<url>        the kit is rendered and reachable
+          #   KIT_JSON=<compact>   the Mind wrote a kit, nobody rendered it (no --render-fallback)
+          #   SKIPPED=<line>       the Mind decided this release does not earn a kit
+          #   NOTHING              the Mind replied, but with nothing we can use
+          #   ERROR=<line>         we reached the Mind but the render call failed
+          #
+          # Everything else goes to stderr. Exit is 0 for every Mind level outcome above,
+          # including a skip. Non-zero only for a real failure: bad arguments, auth, rate
+          # limit, no reply at all.
+          set -euo pipefail
+
+          ALIAS=""
+          MIND=""
+          MESSAGE_FILE=""
+          TIMEOUT="300000"
+          WORK_DIR=""
+          RENDER_FALLBACK="no"
+          POLL_TRIES="${IMAJI_POLL_TRIES:-20}"
+          POLL_INTERVAL="${IMAJI_POLL_INTERVAL:-15}"
+
+          while [ $# -gt 0 ]; do
+            case "$1" in
+              --alias) ALIAS="$2"; shift 2 ;;
+              --mind) MIND="$2"; shift 2 ;;
+              --message-file) MESSAGE_FILE="$2"; shift 2 ;;
+              --timeout) TIMEOUT="$2"; shift 2 ;;
+              --work-dir) WORK_DIR="$2"; shift 2 ;;
+              --render-fallback) RENDER_FALLBACK="yes"; shift ;;
+              -h|--help) sed -n '2,32p' "$0"; exit 0 ;;
+              *) echo "minds-send: unknown argument: $1" >&2; exit 2 ;;
+            esac
+          done
+
+          die() { echo "minds-send: $*" >&2; exit 2; }
+
+          [ -n "$ALIAS" ] || die "missing --alias"
+          [ -n "$MIND" ] || die "missing --mind"
+          [ -n "$MESSAGE_FILE" ] || die "missing --message-file"
+          [ -f "$MESSAGE_FILE" ] || die "message file not found: $MESSAGE_FILE"
+          [ -n "${MINDS_BUILDER_API_KEY:-}" ] || die "MINDS_BUILDER_API_KEY is not set"
+
+          # The alias regex the API enforces. Catch it here rather than in a 400.
+          case "$ALIAS" in
+            *[!a-z0-9_-]*) die "alias must match ^[a-z0-9_-]+$, got: $ALIAS" ;;
+          esac
+          # Owner gated routes reject an uppercase Mind ID.
+          MIND="$(printf '%s' "$MIND" | tr '[:upper:]' '[:lower:]')"
+
+          HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+          PARSE="${IMAJI_PARSE_REPLY:-$HERE/parse-reply.py}"
+          [ -f "$PARSE" ] || die "parse-reply.py not found at $PARSE"
+          PY="${PYTHON:-python3}"
+
+          if [ -z "$WORK_DIR" ]; then
+            WORK_DIR="$(mktemp -d)"
+          fi
+          mkdir -p "$WORK_DIR"
+
+          export MINDS_NO_BANNER=1
+          export MINDS_SKIP_VERSION_CHECK=1
+          read -r -a MINDS_CMD <<< "${MINDS_CLI:-bunx @animocabrands/minds-cli@0.1.4}"
+
+          # 1. Ensure the conversation. Idempotent, and the alias is permanent per repo.
+          #    Reusing an alias against a different Mind throws alias_mind_mismatch, which
+          #    is worth failing on: it means MIND_ID changed under a live conversation.
+          echo "minds-send: ensuring conversation $ALIAS" >&2
+          if ! "${MINDS_CMD[@]}" chat create --alias "$ALIAS" --mind "$MIND" > "$WORK_DIR/chat.json" 2> "$WORK_DIR/chat.err"; then
+            sed -e 's/[A-Za-z0-9_-]\{24,\}/[redacted]/g' "$WORK_DIR/chat.err" >&2 || true
+            die "chat create failed for alias $ALIAS"
+          fi
+
+          # 2. Remember where the conversation ends, so a reply can never be mistaken for
+          #    an older message. Every path below is gated on this: a message is only this
+          #    release's reply if its fingerprint is strictly newer than the baseline.
+          #    A fingerprint is "<16 digit zero padded epoch ms>_<uuid>", so a zero padded
+          #    epoch ms is string comparable with one. When history gives us nothing (a
+          #    502, which this platform does return, or a conversation that is empty
+          #    because it is new) we fall back to the clock we are about to send at, minus
+          #    a minute of allowance for skew between this runner and the platform. What we
+          #    never do is fall back to no filter at all: that is how the previous
+          #    release's kit gets reported as this release's.
+          BASELINE=""
+          if "${MINDS_CMD[@]}" history "$ALIAS" --limit 1 > "$WORK_DIR/baseline.json" 2> "$WORK_DIR/baseline.err"; then
+            BASELINE="$("$PY" "$PARSE" --emit fingerprint < "$WORK_DIR/baseline.json" || true)"
+          fi
+          if [ -n "$BASELINE" ]; then
+            echo "minds-send: baseline fingerprint $BASELINE" >&2
+          else
+            BASELINE="$("$PY" -c 'import time; print("%016d" % (int(time.time() * 1000) - 60000))' || true)"
+            [ -n "$BASELINE" ] || die "no baseline fingerprint and no clock to fall back on"
+            echo "minds-send: no baseline from history, falling back to the send clock $BASELINE" >&2
+          fi
+
+          # 3. Send. A full kit takes 134 to 144 seconds of Mind time, so the wait is long
+          #    on purpose. A --wait timeout exits 3 while the reply usually lands a few
+          #    seconds later, which is what step 4 is for.
+          echo "minds-send: sending $(wc -c < "$MESSAGE_FILE" | tr -d ' ') bytes, waiting up to ${TIMEOUT}ms" >&2
+          set +e
+          "${MINDS_CMD[@]}" send "$ALIAS" - --wait --timeout "$TIMEOUT" \
+            < "$MESSAGE_FILE" > "$WORK_DIR/send.json" 2> "$WORK_DIR/send.err"
+          SEND_RC=$?
+          set -e
+
+          REPLY_FILE=""
+          # One guard, every path: newer than the baseline, and not an echo of the message
+          # we just sent. A reply handed straight back by send is not evidence of freshness
+          # on its own, because the CLI skips its own freshness check whenever its internal
+          # history call fails, and then --wait can return the previous release's reply.
+          FILTERS=(--after "$BASELINE" --exclude-file "$MESSAGE_FILE")
+          POLL="no"
+          case "$SEND_RC" in
+            0)
+              FRESH="$("$PY" "$PARSE" --emit fingerprint "${FILTERS[@]}" < "$WORK_DIR/send.json" || true)"
+              if [ -n "$FRESH" ]; then
+                echo "minds-send: send returned reply $FRESH" >&2
+                REPLY_FILE="$WORK_DIR/send.json"
+              else
+                echo "minds-send: send returned nothing newer than the baseline, polling history" >&2
+                POLL="yes"
+              fi
+              ;;
+            3)
+              echo "minds-send: send exited 3 (wait timeout or server error), polling history" >&2
+              POLL="yes"
+              ;;
+            2) sed -e 's/[A-Za-z0-9_-]\{24,\}/[redacted]/g' "$WORK_DIR/send.err" >&2 || true
+               die "send rejected the request (exit 2)" ;;
+            4) echo "minds-send: the Builder API key was rejected (exit 4)" >&2; exit 4 ;;
+            5) echo "minds-send: rate limited (exit 5)" >&2; exit 5 ;;
+            *) sed -e 's/[A-Za-z0-9_-]\{24,\}/[redacted]/g' "$WORK_DIR/send.err" >&2 || true
+               echo "minds-send: send exited $SEND_RC" >&2; exit "$SEND_RC" ;;
+          esac
+
+          if [ "$POLL" = "yes" ]; then
+            i=0
+            while [ "$i" -lt "$POLL_TRIES" ]; do
+              i=$((i + 1))
+              sleep "$POLL_INTERVAL"
+              if ! "${MINDS_CMD[@]}" history "$ALIAS" --limit 5 > "$WORK_DIR/poll.json" 2>/dev/null; then
+                echo "minds-send: poll $i history call failed, retrying" >&2
+                continue
+              fi
+              FOUND="$("$PY" "$PARSE" --emit fingerprint "${FILTERS[@]}" < "$WORK_DIR/poll.json" || true)"
+              if [ -n "$FOUND" ]; then
+                echo "minds-send: poll $i found reply $FOUND" >&2
+                cp "$WORK_DIR/poll.json" "$WORK_DIR/reply-source.json"
+                REPLY_FILE="$WORK_DIR/reply-source.json"
+                break
+              fi
+              echo "minds-send: poll $i, still nothing newer than the baseline" >&2
+            done
+          fi
+
+          if [ -z "$REPLY_FILE" ]; then
+            echo "minds-send: no reply after the wait and $POLL_TRIES polls" >&2
+            exit 3
+          fi
+
+          # 4. Read the reply once, keep the plain text for the log, and decide.
+          "$PY" "$PARSE" --emit text "${FILTERS[@]}" \
+            < "$REPLY_FILE" > "$WORK_DIR/reply.txt" || true
+          RESULT="$("$PY" "$PARSE" "${FILTERS[@]}" < "$REPLY_FILE")"
+
+          # 5. The Mind wrote a kit but never called the endpoint. Do it for it, so a
+          #    forgetful Mind still produces a kit instead of a dead job.
+          case "$RESULT" in
+            KIT_JSON=*)
+              if [ "$RENDER_FALLBACK" = "yes" ]; then
+                [ -n "${IMAJI_BASE_URL:-}" ] || die "--render-fallback needs IMAJI_BASE_URL"
+                [ -n "${IMAJI_KIT_TOKEN:-}" ] || die "--render-fallback needs IMAJI_KIT_TOKEN"
+                printf '%s' "${RESULT#KIT_JSON=}" > "$WORK_DIR/kit.json"
+                echo "minds-send: the Mind did not POST the kit, rendering it here" >&2
+                set +e
+                CODE="$(curl -sS -o "$WORK_DIR/render.json" -w '%{http_code}' --max-time 180 \
+                  -X POST "${IMAJI_BASE_URL%/}/api/render" \
+                  -H "Authorization: Bearer $IMAJI_KIT_TOKEN" \
+                  -H 'Content-Type: application/json' \
+                  --data-binary @"$WORK_DIR/kit.json" 2> "$WORK_DIR/render.err")"
+                CURL_RC=$?
+                set -e
+                if [ "$CURL_RC" -ne 0 ]; then
+                  RESULT="ERROR=render endpoint unreachable (curl exit $CURL_RC)"
+                elif [ "$CODE" != "200" ] && [ "$CODE" != "201" ]; then
+                  RESULT="ERROR=render endpoint answered $CODE"
+                else
+                  URL="$("$PY" -c 'import json,sys
+          try:
+              d = json.load(open(sys.argv[1]))
+          except Exception:
+              d = {}
+          print(d.get("kitUrl") or "")' "$WORK_DIR/render.json")"
+                  if [ -n "$URL" ]; then
+                    RESULT="KIT_URL=$URL"
+                  else
+                    RESULT="ERROR=render endpoint answered $CODE with no kitUrl"
+                  fi
+                fi
+              fi
+              ;;
+          esac
+
+          printf '%s\n' "$RESULT"
+          IMAJI_MINDS_SEND_SH
+          chmod +x "$IMAJI_WORK/minds-send.sh"
+          python3 -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$IMAJI_WORK/parse-reply.py"
+          bash -n "$IMAJI_WORK/minds-send.sh"
+
+      - name: Build the release message
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          IMAJI_KIT_TOKEN: ${{ secrets.IMAJI_KIT_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${INPUT_TAG:-$EVENT_TAG}"
+          if [ -z "$TAG" ]; then
+            TAG="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq '.tag_name' 2>/dev/null || true)"
+            # gh prints the error body on stdout when the call fails, so refuse
+            # anything that does not look like a tag.
+            case "$TAG" in ""|*[!A-Za-z0-9._/+-]*) TAG="" ;; esac
+          fi
+          [ -n "$TAG" ] || { echo "no tag to work from"; exit 1; }
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "tag: $TAG"
+
+          # Read the release through the API rather than through an expression, so
+          # release notes can never become shell.
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.body // ""' \
+            > "$IMAJI_WORK/notes.txt" 2>/dev/null || : > "$IMAJI_WORK/notes.txt"
+          RELEASE_URL="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.html_url' 2>/dev/null || true)"
+          case "$RELEASE_URL" in https://*) ;; *) RELEASE_URL="" ;; esac
+          [ -n "$RELEASE_URL" ] || RELEASE_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG"
+
+          PREV="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)"
+          COMPARE=""
+          [ -n "$PREV" ] && COMPARE="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/$PREV...$TAG"
+
+          M="$IMAJI_WORK/message.txt"
+          : > "$M"
+          cat >> "$M" <<'IMAJI_BRIEF'
+          imaji release job.
+
+          A release just went out. Read the notes at the bottom, decide what this release
+          earns, and write the kit in the brand and voice you already hold for this
+          repository. Reference the last release when it actually helps; do not force it.
+
+          The job, in one paragraph, in case this thread got long: produce the kit JSON
+          (version, repo, releaseUrl, outputs, look, brand, tweet, thread, linkedin, card,
+          film, vertical, launch, skipped, memory; outputs may name x, linkedin, card,
+          film, vertical and launch, and launch needs a launch.beats storyboard of 3 to
+          10 beats), POST that JSON to the render endpoint below with the
+          bearer token, and reply with the kit URL the endpoint returns plus a one line
+          summary of what you made. The renderer has no taste and no memory: the copy, the
+          look and everything you leave out are your call. If this release does not earn a
+          kit, reply with "skipping" and one line on why, and post nothing.
+
+          End your reply with the kit JSON in one fenced json block, so the job can
+          recover it if the POST failed.
+
+          IMAJI_BRIEF
+
+          {
+            echo "render endpoint: POST ${IMAJI_BASE_URL%/}/api/render"
+            echo "authorization header: Bearer ${IMAJI_KIT_TOKEN}"
+            echo "content type: application/json"
+            echo
+            echo "repo: $GITHUB_REPOSITORY"
+            echo "tag: $TAG"
+            echo "release url: $RELEASE_URL"
+            [ -n "$PREV" ] && echo "previous tag: $PREV"
+            [ -n "$COMPARE" ] && echo "compare: $COMPARE"
+            echo
+          } >> "$M"
+
+          # Standing preferences, if the repository keeps any. The file is optional,
+          # and a broken one is a warning, never a failure.
+          if [ -f imaji.json ]; then
+            if PREFS="$(jq -c . imaji.json 2>/dev/null)" && [ -n "$PREFS" ]; then
+              {
+                echo "--- standing preferences from imaji.json ---"
+                printf '%s\n' "$PREFS"
+                echo "--- end imaji.json ---"
+                echo "Honour these for this release unless I overrode them in chat. If they conflict with a rule I gave you in chat, the chat rule wins."
+                echo
+              } >> "$M"
+            else
+              echo "warning: imaji.json is present but does not parse as JSON, continuing without it"
+            fi
+          fi
+
+          # Evidence a launch video can use. raw.githubusercontent.com only resolves
+          # on public repositories, which the line says out loud.
+          BRANCH="${DEFAULT_BRANCH:-}"
+          if [ -z "$BRANCH" ]; then
+            BRANCH="$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)"
+          fi
+          # A repository with no origin/HEAD answers "HEAD", which is not a branch.
+          case "$BRANCH" in ""|HEAD|*[!A-Za-z0-9._/-]*) BRANCH="main" ;; esac
+
+          HOMEPAGE=""
+          if [ -f package.json ]; then
+            HOMEPAGE="$(jq -r '.homepage // empty' package.json 2>/dev/null || true)"
+          fi
+          if [ -z "$HOMEPAGE" ]; then
+            READMEFILE="$(git ls-files | grep -iE '^readme(\.md|\.markdown|\.rst|\.txt)?$' | head -1 || true)"
+            if [ -n "$READMEFILE" ] && [ -f "$READMEFILE" ]; then
+              HOMEPAGE="$(grep -ohE 'https://[A-Za-z0-9._~:/?#@$&*+,;=%-]+' "$READMEFILE" \
+                | sed -E 's/[.,;:?!]+$//' \
+                | grep -v 'github\.com' \
+                | grep -Eiv '\.(md|markdown|txt|yml|yaml|json|xml|csv|png|jpe?g|gif|svg|webp|pdf|zip)(\?|#|$)' \
+                | grep -Eiv '^https://(github\.com|raw\.githubusercontent\.com|www\.github\.com)/' | awk '{ print length($0), $0 }' | sort -n | head -1 | cut -d' ' -f2- || true)"
+            fi
+          fi
+          # A deep link is not a homepage: cut it to the origin, unless it is a
+          # GitHub Pages project site, where the first path segment is the site.
+          case "$HOMEPAGE" in
+            ""|none|*.github.io/*) ;;
+            https://*/*) HOMEPAGE="$(printf '%s' "$HOMEPAGE" | sed -E 's#^(https://[^/]+)/.*$#\1#')" ;;
+          esac
+          [ -n "$HOMEPAGE" ] || HOMEPAGE="none"
+
+          # Screenshots and diagrams. Icons, logos, badges and anything under 2 KB
+          # are decoration, not evidence.
+          KEEP="$(git ls-files \
+            | grep -Ei '\.(png|jpg|jpeg|webp|gif)$' \
+            | grep -Eiv '(node_modules|favicon|icon|logo|badge)' \
+            | while IFS= read -r p; do
+                [ -f "$p" ] || continue
+                SIZE="$(wc -c < "$p" | tr -d ' ')"
+                [ "$SIZE" -ge 2048 ] || continue
+                printf '%s\n' "$p"
+              done || true)"
+          # A screenshot in docs/ or public/ says more than one at the root, so
+          # those come first and the twelve cut takes them.
+          WANTED='(^|/)(docs|screenshots|assets|public)/'
+          IMAGES="$(printf '%s\n%s\n' \
+            "$(printf '%s\n' "$KEEP" | grep -E "$WANTED" || true)" \
+            "$(printf '%s\n' "$KEEP" | grep -Ev "$WANTED" || true)" \
+            | grep -v '^$' | head -12 || true)"
+
+          {
+            echo "--- repository assets ---"
+            echo "homepage: $HOMEPAGE"
+            echo "images (public raw URLs, fetchable only if this repo is public):"
+            if [ -n "$IMAGES" ]; then
+              printf '%s\n' "$IMAGES" | while IFS= read -r p; do
+                [ -n "$p" ] || continue
+                echo "https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$BRANCH/$p"
+              done
+            else
+              echo "none"
+            fi
+            echo "--- end repository assets ---"
+            echo
+          } >> "$M"
+
+          {
+            echo "--- release notes ---"
+          } >> "$M"
+          cat "$IMAJI_WORK/notes.txt" >> "$M"
+          {
+            echo
+            echo "--- end release notes ---"
+          } >> "$M"
+          echo "message is $(wc -c < "$M" | tr -d ' ') bytes"
+
+      - name: Ask the Mind
+        id: mind
+        env:
+          MINDS_BUILDER_API_KEY: ${{ secrets.MINDS_API_KEY }}
+          MIND_ID: ${{ secrets.MIND_ID }}
+          IMAJI_KIT_TOKEN: ${{ secrets.IMAJI_KIT_TOKEN }}
+        run: |
+          set -euo pipefail
+          ALIAS="imaji-$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9_-' '-')"
+          echo "conversation alias: $ALIAS"
+          RESULT="$("$IMAJI_WORK/minds-send.sh" \
+            --alias "$ALIAS" \
+            --mind "$MIND_ID" \
+            --message-file "$IMAJI_WORK/message.txt" \
+            --timeout 300000 \
+            --work-dir "$IMAJI_WORK/run" \
+            --render-fallback)"
+          echo "--- what the Mind said ---"
+          cat "$IMAJI_WORK/run/reply.txt" || true
+          echo "--- end ---"
+          KIT_URL=""
+          STATUS=""
+          case "$RESULT" in
+            KIT_URL=*)  KIT_URL="${RESULT#KIT_URL=}"; STATUS="kit" ;;
+            SKIPPED=*)  STATUS="skipped: ${RESULT#SKIPPED=}" ;;
+            ERROR=*)    STATUS="error: ${RESULT#ERROR=}" ;;
+            KIT_JSON=*) STATUS="the Mind wrote a kit but it was never rendered" ;;
+            *)          STATUS="the Mind replied with nothing this job could use" ;;
+          esac
+          echo "kit_url=$KIT_URL" >> "$GITHUB_OUTPUT"
+          {
+            echo "status<<IMAJI_EOF"
+            echo "$STATUS"
+            echo "IMAJI_EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "result: $STATUS"
+
+      - name: Summary
+        if: always()
+        env:
+          KIT_URL: ${{ steps.mind.outputs.kit_url }}
+          STATUS: ${{ steps.mind.outputs.status }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## imaji, ${TAG:-this release}"
+            echo
+            if [ -n "${KIT_URL:-}" ]; then
+              echo "Kit: $KIT_URL"
+            else
+              echo "${STATUS:-no kit this time}"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Releases have no comment API. The nearest public place to put the link is a
+      # comment on the commit the tag points at, which shows on the commit page.
+      - name: Comment the kit on the release commit
+        if: steps.mind.outputs.kit_url != '' && (github.event.inputs.post_comment == 'true' || vars.IMAJI_POST_COMMENT == 'true')
+        env:
+          KIT_URL: ${{ steps.mind.outputs.kit_url }}
+        run: |
+          set -euo pipefail
+          SHA="$(git rev-parse "${TAG}^{commit}" 2>/dev/null || echo "$GITHUB_SHA")"
+          gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/comments" \
+            -f body="imaji kit for ${TAG}: ${KIT_URL}" >/dev/null
+          echo "commented on $SHA"

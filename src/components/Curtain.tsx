@@ -2,45 +2,103 @@
 
 import { useEffect } from "react";
 
-/* Each page of the front door is pinned as the next one slides over it, and
-   while it is being covered it eases back: a little smaller, a little
-   dimmer, drifting up slower than the page that covers it. One number per
-   page, written on a frame, read by CSS. Reduced motion turns it off. */
+/* The scroll package. Curtain: the hero stays pinned while everything after
+   it slides up over it as one sheet; as it is covered the hero dims and its
+   copy lifts, driven by one number (--cover) written on a frame. Smooth: on a
+   wheel the page lerps toward a target instead of jumping, time-based so 60
+   and 120 Hz feel the same; touch keeps its native momentum. Reduced motion
+   turns both off. */
 export default function Curtain() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const pages = Array.from(document.querySelectorAll<HTMLElement>(".fd-page"));
-    if (pages.length < 2) return;
-    document.documentElement.classList.add("fd-curtain");
-    let raf = 0;
-    const paint = () => {
-      raf = 0;
-      const vh = window.innerHeight;
-      for (const page of pages) {
-        if (page.offsetHeight <= vh + 1) page.dataset.pin = "";
-        else delete page.dataset.pin;
-      }
-      for (let i = 0; i < pages.length - 1; i++) {
-        const page = pages[i];
-        const next = pages[i + 1];
-        const cover = next.getBoundingClientRect().top;
-        const start = page.getBoundingClientRect().bottom;
-        const span = Math.max(1, Math.min(vh, start - cover + vh));
-        const p = Math.min(1, Math.max(0, (vh - cover) / span));
-        page.style.setProperty("--p", p.toFixed(4));
-      }
+    const root = document.documentElement;
+    const hero = document.querySelector<HTMLElement>(".fd-fold");
+    if (!hero) return;
+    root.classList.add("fd-curtain");
+
+    /* ---- curtain: --cover on the hero ---- */
+    let queued = false;
+    const tick = () => {
+      queued = false;
+      const cover = Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * 0.9)));
+      hero.style.setProperty("--cover", cover.toFixed(3));
     };
     const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(paint);
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(tick);
+      }
     };
-    paint();
+    tick();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+
+    /* ---- smooth: wheel deltas move a target, the page lerps toward it ---- */
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    let target = 0;
+    let current = 0;
+    let raf: number | null = null;
+    let last = 0;
+    const maxY = () => root.scrollHeight - window.innerHeight;
+    const loop = (now: number) => {
+      const dt = last ? Math.min(64, now - last) : 16.7;
+      last = now;
+      const k = 1 - Math.pow(0.9, dt / 16.7);
+      current += (target - current) * k;
+      if (Math.abs(target - current) < 0.5) {
+        current = target;
+        window.scrollTo(0, current);
+        raf = null;
+        last = 0;
+        return;
+      }
+      window.scrollTo(0, current);
+      raf = requestAnimationFrame(loop);
+    };
+    const go = () => {
+      if (raf === null) {
+        current = window.scrollY;
+        last = 0;
+        raf = requestAnimationFrame(loop);
+      }
+    };
+    const onWheel = (e: WheelEvent) => {
+      if (!fine || e.ctrlKey) return;
+      e.preventDefault();
+      let d = e.deltaY;
+      if (e.deltaMode === 1) d *= 16;
+      else if (e.deltaMode === 2) d *= window.innerHeight;
+      if (raf === null) target = window.scrollY;
+      target = Math.max(0, Math.min(maxY(), target + d));
+      go();
+    };
+    const onNativeScroll = () => {
+      if (raf === null) target = current = window.scrollY;
+    };
+    const onClick = (e: MouseEvent) => {
+      if (!fine) return;
+      const a = (e.target as Element | null)?.closest?.('a[href^="#"]');
+      if (!a) return;
+      const href = a.getAttribute("href");
+      if (!href || href === "#") return;
+      const el = document.querySelector(href);
+      if (!el) return;
+      e.preventDefault();
+      target = Math.max(0, Math.min(maxY(), el.getBoundingClientRect().top + window.scrollY));
+      go();
+    };
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("scroll", onNativeScroll, { passive: true });
+    document.addEventListener("click", onClick);
+
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-      document.documentElement.classList.remove("fd-curtain");
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("scroll", onNativeScroll);
+      document.removeEventListener("click", onClick);
+      if (raf !== null) cancelAnimationFrame(raf);
+      root.classList.remove("fd-curtain");
     };
   }, []);
   return null;

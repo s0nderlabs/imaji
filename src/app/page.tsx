@@ -104,25 +104,25 @@ export default async function Home() {
       <RevealOnScroll />
       <Curtain />
 
-      <header className="fd-top">
-        <div className="fd-col">
-          <Link href="/" className="fd-mark" aria-label="imaji, home">
-            <Wordmark />
-          </Link>
-          <nav className="fd-nav" aria-label="Site">
-            <a href="#start">Start</a>
-            <Link href="/docs">Docs</Link>
-            <a href={`https://${REPO}`} target="_blank" rel="noreferrer noopener">
-              GitHub
-            </a>
-            <ThemeToggle />
-          </nav>
-        </div>
-      </header>
 
       <main>
-        <section className="fd-fold fd-page">
-          <div className="fd-col">
+        <section className="fd-fold">
+          <header className="fd-top">
+            <div className="fd-col">
+              <Link href="/" className="fd-mark" aria-label="imaji, home">
+                <Wordmark />
+              </Link>
+              <nav className="fd-nav" aria-label="Site">
+                <a href="#start">Start</a>
+                <Link href="/docs">Docs</Link>
+                <a href={`https://${REPO}`} target="_blank" rel="noreferrer noopener">
+                  GitHub
+                </a>
+                <ThemeToggle />
+              </nav>
+            </div>
+          </header>
+          <div className="fd-col fd-hero">
             <h1 className="fd-h1" style={{ "--i": 0 } as React.CSSProperties}>
               A developer who ships is a creator whose content is{" "}
               <span className="fd-hot">code</span>.
@@ -145,7 +145,8 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="fd-seq fd-page">
+        <div className="fd-after">
+        <section className="fd-seq">
           <div className="fd-col">
             <h2 className="fd-h2" data-reveal>
               How a release becomes a kit.
@@ -156,7 +157,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="fd-kit fd-page">
+        <section className="fd-kit">
           <div className="fd-col">
             <h2 className="fd-h2" data-reveal>
               The rest of the kit for {v}.
@@ -293,7 +294,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="fd-start fd-page" id="start">
+        <section className="fd-start" id="start">
           <div className="fd-col">
             <h2 className="fd-h2" data-reveal>
               Three things, about eight minutes.
@@ -357,9 +358,7 @@ export default async function Home() {
             </p>
           </div>
         </section>
-      </main>
-
-      <footer className="fd-foot fd-page">
+      <footer className="fd-foot">
         <div className="fd-col">
           <p className="fd-sign" data-reveal>
             For solo builders who only ship.
@@ -375,6 +374,8 @@ export default async function Home() {
           </div>
         </div>
       </footer>
+      </div>
+      </main>
     </div>
   );
 }
