@@ -44,6 +44,10 @@ export type Showcase = {
   /** what the Mind kept from it */
   memory: string | null
   skipped: string[]
+  /** who the posts are from, for the platform mocks */
+  brand: { name: string; logo: string | null; ground: "dark" | "light" }
+  /** when the kit landed, ISO; the mocks date their posts from it */
+  receivedAt: string | null
 }
 
 const DONE = (s: CardStatus | FilmStatus | undefined) => s === "done"
@@ -98,6 +102,8 @@ const STATIC: Showcase = {
   memory:
     "v0.2.0 builds on v0.1.0 by making the film real: ten seconds, four beats, rendered frame by frame from HTML.",
   skipped: [],
+  brand: { name: "imaji", logo: "/imaji-5b-on-dark.svg", ground: "dark" },
+  receivedAt: "2026-08-28T06:52:28.050Z",
 }
 
 /* --------------------------------------------------------------- the run
@@ -189,6 +195,12 @@ export async function loadShowcase(): Promise<Showcase> {
       made: madeSentence(meta, previous ?? undefined),
       memory: kit.memory ?? null,
       skipped: kit.skipped,
+      brand: {
+        name: kit.brand.name,
+        logo: kit.brand.logoUrl ?? null,
+        ground: kit.brand.ground === "light" ? "light" : "dark",
+      },
+      receivedAt: meta.receivedAt,
     }
   } catch {
     /* the front door is the one page that must never 500: a bad read id, a

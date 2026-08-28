@@ -11,6 +11,7 @@
 
 <p align="center">
   <a href="https://imaji.s0nderlabs.xyz">imaji.s0nderlabs.xyz</a>
+  &middot; <a href="https://imaji.s0nderlabs.xyz/k/9b67acb83bf6c255a882cd82/">the kits it made</a>
   &middot; <a href="https://imaji.s0nderlabs.xyz/job.md">the job</a>
   &middot; <a href="https://imaji.s0nderlabs.xyz/agents.md">agent setup</a>
   &middot; <a href="LICENSE">Apache-2.0</a>
@@ -157,7 +158,7 @@ Visuals are HTML, not a diffusion model, so they come out deterministic and exac
 
 ## It ran, for real
 
-imaji announced imaji. On 28 August 2026 the Mind `imaji.labs` (a Minds account, Content Mind template, nothing custom) took the job from `job/JOB.md`, was onboarded from this repository's own README and CSS tokens, and then handled three releases on its own through the workflow's send-and-wait path, writing each kit and posting it to `https://imaji.s0nderlabs.xyz/api/render`. Nobody prompted it after the job:
+imaji announced imaji. On 28 August 2026 the Mind `imaji.labs` (a Minds account, Content Mind template, nothing custom) took the job from `job/JOB.md`, was onboarded from this repository's own README and CSS tokens, and then handled three releases on its own through the workflow's send-and-wait path, writing each kit and posting it to `https://imaji.s0nderlabs.xyz/api/render`. Nobody prompted it after the job. Every kit is on one page, exactly as the Mind and imaji left it: **[imaji.s0nderlabs.xyz/k/9b67acb83bf6c255a882cd82](https://imaji.s0nderlabs.xyz/k/9b67acb83bf6c255a882cd82/)**.
 
 | Kit | What it asked for | What imaji rendered, timed from the POST |
 | --- | --- | --- |

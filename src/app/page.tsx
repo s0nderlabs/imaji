@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import CopyButton from "@/components/CopyButton";
+import CopySheet from "@/components/CopySheet";
 import Disclosure from "@/components/Disclosure";
 import FilmPlayer from "@/components/FilmPlayer";
-import Curtain from "@/components/Curtain";
 import RevealOnScroll from "@/components/RevealOnScroll";
+import { LinkedInLogo, LinkedInPost, XLogo, XPost, XThread, liAge, xDate, type Author } from "@/components/SocialMock";
 import Switcher from "@/components/Switcher";
 import ThemeToggle from "@/components/ThemeToggle";
 import TokenMint from "@/components/TokenMint";
@@ -15,10 +15,10 @@ import Wordmark from "@/components/Wordmark";
 import { loadShowcase } from "@/lib/showcase";
 
 /* The front door, told as one narrative in one reading column: the sentence,
-   the film, how a release becomes a kit, the rest of the kit, three things to
-   start, and the sign-off. Nobody's private kits can appear here; the only
-   kit on this page is the one this server was told to show off, which is
-   imaji's own. */
+   the film, how a release becomes a kit, the rest of the kit, the questions
+   people ask, three things to start, and the sign-off. Nobody's private kits
+   can appear here; the only kit on this page is the one this server was told
+   to show off, which is imaji's own. */
 
 export const dynamic = "force-dynamic";
 
@@ -30,23 +30,60 @@ const REPO = "github.com/s0nderlabs/imaji";
 const AGENT_PROMPT =
   "Set up imaji for this repository so my own Mind writes the launch kit for every release I tag. Read https://imaji.s0nderlabs.xyz/agents.md and follow it exactly. Ask me for my Minds API key and Mind ID before you start; never commit them. When you're done, tell me to open my Mind and reply to its brand proposal.";
 
-/* how a release becomes a kit: the claim is the row, the paragraph unfolds */
-const BEATS = [
+/* how a release becomes a kit, in the order it happens; always visible */
+const STEPS = [
   {
-    say: "Your Mind is triggered by your work, not by you. You never prompt it.",
-    body: "You tag a release, and nothing about the way you ship changes. A GitHub Action in your repo sees the tag and wakes your own Mind, the one that already knows your brand.",
+    who: "you",
+    say: "Tag a release.",
+    body: "Nothing about the way you ship changes. gh release create is the whole trigger.",
   },
   {
-    say: "It remembers every release, every correction, every colour you changed.",
-    body: "Your Mind reads the notes, then reads them against everything it already knows: your voice, your colours, every release before this one. It decides what each channel needs, and it writes them.",
+    who: "GitHub",
+    say: "An Action wakes your Mind.",
+    body: "The workflow in your repo sends your own Mind the tag, the notes and the diff. Nobody types a prompt.",
   },
   {
-    say: "It refuses: a typo fix earns no kit, and it says so in your voice.",
-    body: "imaji has no memory and no taste. It takes the copy and the look your Mind decided on and renders them: the card, the film, the vertical cut, and a launch video when the release is a launch. Nothing is posted; the kit lands on a private page only you hold the link to.",
+    who: "your Mind",
+    say: "It reads, remembers, decides.",
+    body: "It reads the notes against everything it already knows: your voice, your colours, every release before this one. It decides what this one earns.",
   },
   {
-    say: "Ask it in chat, and the result lands on the same page.",
-    body: "Releases are the trigger, not the only door. Ask your Mind for a launch video or a fresh card in a chat and it calls imaji the same way; the kit page is where everything it makes ends up.",
+    who: "your Mind",
+    say: "It writes every word.",
+    body: "The tweet, the thread, the LinkedIn post, the card copy, the film lines, and, when the release is a launch, a storyboard.",
+  },
+  {
+    who: "imaji",
+    say: "imaji renders, the kit lands.",
+    body: "Card, film, vertical cut, launch video, exactly as written, on a private page only you hold the link to. Nothing is posted.",
+  },
+];
+
+/* the questions people actually ask, answered straight */
+const FAQ = [
+  {
+    say: "Do I ever have to prompt it?",
+    body: "No. A GitHub Action in your repo wakes your Mind every time you publish a release. You hand it the job once, in a chat; after that the trigger is your work, not you.",
+  },
+  {
+    say: "What does it remember?",
+    body: "Every release before this one, every correction you made, every colour you changed. That memory lives in your Mind, on your account, not in imaji. So the kit for your next release says \"building on the last one\" without being told.",
+  },
+  {
+    say: "What if the release is just a typo fix?",
+    body: "It refuses. A dependency bump or a typo fix earns nothing, and your Mind says so in your voice. Saying no is a valid kit, and it is one of the things a template can never do.",
+  },
+  {
+    say: "Can I ask for something without tagging a release?",
+    body: "Yes. Ask your Mind in chat for a fresh card for a talk, the launch video for an older release, or a vertical cut only. It calls imaji the same way, and the result lands on the same private page.",
+  },
+  {
+    say: "Does it post anything for me?",
+    body: "No. Nothing is auto-posted. The kit lands on a private page at a link only you hold, and you decide what goes where. The release comment is opt-in.",
+  },
+  {
+    say: "Whose Mind is it, and what does imaji actually do?",
+    body: "Your own Mind, on your own Minds account. imaji never runs one for you and never shares one between users. imaji has no memory and no taste: it turns the words and the look your Mind decided on into a card, a film and the cuts, deterministically, from HTML.",
   },
 ];
 
@@ -69,6 +106,12 @@ function metadataBase(): URL | undefined {
   } catch {
     return undefined;
   }
+}
+
+function lines(text: string | null): string {
+  if (!text) return "";
+  const n = text.split("\n").length;
+  return `${n} lines`;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -99,11 +142,20 @@ export default async function Home() {
   const v = showcase.version;
   const filmVersion = showcase.film ? v : showcase.fold.version;
 
+  const author: Author = {
+    name: showcase.brand.name,
+    handle: showcase.repo.split("/")[0] || showcase.brand.name,
+    logo: showcase.brand.logo,
+    ground: showcase.brand.ground,
+    sub: showcase.repo,
+  };
+  const postedX = xDate(showcase.receivedAt);
+  const postedLi = liAge(showcase.receivedAt);
+  const cardAlt = `The ${v} social card`;
+
   return (
     <div className="fd">
       <RevealOnScroll />
-      <Curtain />
-
 
       <main>
         <section className="fd-fold">
@@ -113,6 +165,7 @@ export default async function Home() {
                 <Wordmark />
               </Link>
               <nav className="fd-nav" aria-label="Site">
+                <a href="#how">How</a>
                 <a href="#start">Start</a>
                 <Link href="/docs">Docs</Link>
                 <a href={`https://${REPO}`} target="_blank" rel="noreferrer noopener">
@@ -141,63 +194,72 @@ export default async function Home() {
                 label={`The ten second film imaji rendered for its own ${filmVersion} release`}
               />
             </div>
-
+            <p className="fd-cap" style={{ "--i": 3 } as React.CSSProperties}>
+              The ten second film imaji rendered for its own{" "}
+              <span className="v">{filmVersion}</span> release. Every word in it
+              was written by a Mind.
+            </p>
           </div>
         </section>
 
         <div className="fd-after">
-        <section className="fd-seq">
-          <div className="fd-col">
-            <h2 className="fd-h2" data-reveal>
-              How a release becomes a kit.
-            </h2>
-            <div data-reveal>
-              <Disclosure items={BEATS} />
+          <section className="fd-seq" id="how">
+            <div className="fd-col">
+              <h2 className="fd-h2" data-reveal>
+                How a release becomes a kit.
+              </h2>
+              <p className="fd-lede" data-reveal>
+                Five steps. You do the first one, the way you already do.
+              </p>
+              <ol className="fd-steps5" data-reveal>
+                {STEPS.map((step, i) => (
+                  <li key={step.say} className={`fd-s5 fd-s5-${step.who.replace(/\s/g, "-")}`}>
+                    <span className="fd-s5-n" aria-hidden>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="fd-s5-who">{step.who}</span>
+                    <h3>{step.say}</h3>
+                    <p>{step.body}</p>
+                  </li>
+                ))}
+              </ol>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="fd-kit">
-          <div className="fd-col">
-            <h2 className="fd-h2" data-reveal>
-              The rest of the kit for {v}.
-            </h2>
-            <p className="fd-lede" data-reveal>
-              Your Mind wrote all of it in one pass, and decided for itself what
-              each channel needed.
-            </p>
+          <section className="fd-kit">
+            <div className="fd-col">
+              <h2 className="fd-h2" data-reveal>
+                The rest of the kit for {v}.
+              </h2>
+              <p className="fd-lede" data-reveal>
+                Your Mind wrote all of it in one pass, and decided for itself
+                what each channel needed. The posts are shown the way they will
+                look where they are going.
+              </p>
 
-            <div data-reveal>
-              <Switcher
-                tabs={[
-                  ...(showcase.card
-                    ? [
-                        {
-                          key: "card",
-                          label: "Card",
-                          node: (
-                            <>
+              <div data-reveal>
+                <Switcher
+                  tabs={[
+                    ...(showcase.card
+                      ? [
+                          {
+                            key: "card",
+                            label: "Card",
+                            node: (
                               <div className="fd-plate">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={showcase.card}
-                                  alt={`The ${v} social card`}
-                                  width={1200}
-                                  height={630}
-                                />
+                                <img src={showcase.card} alt={cardAlt} width={1200} height={630} />
                               </div>
-                            </>
-                          ),
-                        },
-                      ]
-                    : []),
-                  ...(showcase.launch
-                    ? [
-                        {
-                          key: "launch",
-                          label: "Launch video",
-                          node: (
-                            <>
+                            ),
+                          },
+                        ]
+                      : []),
+                    ...(showcase.launch
+                      ? [
+                          {
+                            key: "launch",
+                            label: "Launch video",
+                            node: (
                               <div className="fd-plate fd-frame">
                                 <FilmPlayer
                                   src={showcase.launch.src}
@@ -205,176 +267,241 @@ export default async function Home() {
                                   label={`The launch video for ${v}`}
                                 />
                               </div>
-                            </>
-                          ),
-                        },
-                      ]
-                    : []),
-                  ...(showcase.vertical
-                    ? [
-                        {
-                          key: "vertical",
-                          label: "Vertical cut",
-                          node: (
-                            <div className="fd-portrait">
-                              <div className="fd-plate fd-frame fd-tall">
-                                <FilmPlayer
-                                  src={showcase.vertical.src}
-                                  offset={5}
-                                  label={`The vertical cut for ${v}`}
-                                />
+                            ),
+                          },
+                        ]
+                      : []),
+                    ...(showcase.vertical
+                      ? [
+                          {
+                            key: "vertical",
+                            label: "Vertical cut",
+                            node: (
+                              <div className="fd-portrait">
+                                <div className="fd-plate fd-frame fd-tall">
+                                  <FilmPlayer
+                                    src={showcase.vertical.src}
+                                    offset={5}
+                                    label={`The vertical cut for ${v}`}
+                                  />
+                                </div>
+                                <p className="fd-cap">
+                                  1080 by 1920, for Shorts, Reels and TikTok.
+                                </p>
                               </div>
+                            ),
+                          },
+                        ]
+                      : []),
+                    ...(showcase.tweet
+                      ? [
+                          {
+                            key: "tweet",
+                            label: "Tweet",
+                            icon: <XLogo className="fd-tabicon" />,
+                            node: (
+                              <div className="fd-social">
+                                <XPost
+                                  author={author}
+                                  text={showcase.tweet}
+                                  when={postedX}
+                                  media={showcase.card}
+                                  mediaAlt={cardAlt}
+                                />
+                                <p className="fd-cap">
+                                  {showcase.tweet.length} characters, the card attached.
+                                </p>
+                              </div>
+                            ),
+                          },
+                        ]
+                      : []),
+                    ...(showcase.thread.length > 0
+                      ? [
+                          {
+                            key: "thread",
+                            label: "Thread",
+                            icon: <XLogo className="fd-tabicon" />,
+                            node: (
+                              <div className="fd-social">
+                                <XThread
+                                  author={author}
+                                  parts={showcase.thread}
+                                  when={postedX}
+                                  media={showcase.card}
+                                  mediaAlt={cardAlt}
+                                />
+                                <p className="fd-cap">
+                                  {showcase.thread.length} posts, each under 280 characters.
+                                </p>
+                              </div>
+                            ),
+                          },
+                        ]
+                      : []),
+                    ...(showcase.linkedin.length > 0
+                      ? [
+                          {
+                            key: "linkedin",
+                            label: "LinkedIn",
+                            icon: <LinkedInLogo className="fd-tabicon" />,
+                            node: (
+                              <div className="fd-social">
+                                <LinkedInPost
+                                  author={author}
+                                  paragraphs={showcase.linkedin}
+                                  when={postedLi}
+                                  media={showcase.card}
+                                  mediaAlt={cardAlt}
+                                />
+                                <p className="fd-cap">
+                                  Written for people who do not follow the repo.
+                                </p>
+                              </div>
+                            ),
+                          },
+                        ]
+                      : []),
+                    {
+                      key: "kept",
+                      label: "What it kept",
+                      node: (
+                        <div className="fd-kept" role="region" aria-label="What your Mind kept">
+                          {showcase.memory ? (
+                            <div className="fd-kept-row">
+                              <span className="fd-kept-k">Remembered</span>
+                              <p>{showcase.memory}</p>
                             </div>
-                          ),
-                        },
-                      ]
-                    : []),
-                  ...(showcase.tweet
-                    ? [
-                        {
-                          key: "tweet",
-                          label: "Tweet",
-                          node: (
-                            <div className="fd-text" tabIndex={0} role="region" aria-label="The tweet">
-                              <p>{showcase.tweet}</p>
+                          ) : null}
+                          {showcase.skipped.length > 0 ? (
+                            <div className="fd-kept-row">
+                              <span className="fd-kept-k">Left out, on purpose</span>
+                              <p>{showcase.skipped.join(" ")}</p>
                             </div>
-                          ),
-                        },
-                      ]
-                    : []),
-                  ...(showcase.thread.length > 0
-                    ? [
-                        {
-                          key: "thread",
-                          label: "Thread",
-                          node: (
-                            <div className="fd-text" tabIndex={0} role="region" aria-label="The thread">
-                              {showcase.thread.map((part, i) => (
-                                <p key={i}>{part}</p>
-                              ))}
-                            </div>
-                          ),
-                        },
-                      ]
-                    : []),
-                  ...(showcase.linkedin.length > 0
-                    ? [
-                        {
-                          key: "linkedin",
-                          label: "LinkedIn",
-                          node: (
-                            <div className="fd-text" tabIndex={0} role="region" aria-label="The LinkedIn post">
-                              {showcase.linkedin.map((part, i) => (
-                                <p key={i}>{part}</p>
-                              ))}
-                            </div>
-                          ),
-                        },
-                      ]
-                    : []),
-                  {
-                    key: "kept",
-                    label: "What it kept",
-                    node: (
-                      <div className="fd-text" tabIndex={0} role="region" aria-label="What your Mind kept">
-                        {showcase.memory ? <p>{showcase.memory}</p> : null}
-                        {showcase.skipped.length > 0 ? (
-                          <p>
-                            <span className="fd-say">Left out, on purpose.</span>{" "}
-                            {showcase.skipped.join(" ")}
-                          </p>
-                        ) : null}
-                        <p>{showcase.made}</p>
-                      </div>
-                    ),
-                  },
-                ]}
-              />
+                          ) : null}
+                          <div className="fd-kept-row">
+                            <span className="fd-kept-k">How it happened</span>
+                            <p>{showcase.made}</p>
+                          </div>
+                        </div>
+                      ),
+                    },
+                  ]}
+                />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="fd-start" id="start">
-          <div className="fd-col">
-            <h2 className="fd-h2" data-reveal>
-              Three things, about eight minutes.
-            </h2>
-            <div className="fd-steps">
-              <div className="fd-step" data-reveal>
-                <h3>Hand your Mind the job.</h3>
-                <p>
-                  Paste the job description into a chat with your own Mind. It is
-                  prose, not config, and the only prompt anyone ever writes.
-                </p>
-                <div className="fd-row">
-                  <CopyButton
+          <section className="fd-faq" id="faq">
+            <div className="fd-col">
+              <h2 className="fd-h2" data-reveal>
+                Questions, answered.
+              </h2>
+              <div data-reveal>
+                <Disclosure items={FAQ} />
+              </div>
+            </div>
+          </section>
+
+          <section className="fd-start" id="start">
+            <div className="fd-col">
+              <h2 className="fd-h2" data-reveal>
+                Three things, about eight minutes.
+              </h2>
+              <p className="fd-lede" data-reveal>
+                Everything you copy is shown here, in full, next to its button.
+              </p>
+              <div className="fd-steps">
+                <div className="fd-step" data-reveal>
+                  <h3>
+                    <span className="fd-step-n">1</span>Hand your Mind the job.
+                  </h3>
+                  <p>
+                    Paste the job description into a chat with your own Mind. It is
+                    prose, not config, and the only prompt anyone ever writes.
+                  </p>
+                  <CopySheet
+                    file="job.md"
+                    fact={job ? `${lines(job)}, prose` : undefined}
                     text={job ?? ""}
                     label="Copy the job"
-                    variant="primary"
-                    icon={false}
-                    className={job ? "" : "pointer-events-none opacity-40"}
+                    kind="prose"
+                    disabled={!job}
                   />
                 </div>
-              </div>
 
-              <div className="fd-step" data-reveal>
-                <h3>Drop the workflow in your repo.</h3>
-                <p>
-                  Copy it into <code>.github/workflows</code> with three secrets,
-                  then run onboarding once so your Mind can read the repo and
-                  propose your brand.
-                </p>
-                <div className="fd-row">
-                  <CopyButton
+                <div className="fd-step" data-reveal>
+                  <h3>
+                    <span className="fd-step-n">2</span>Drop the workflow in your repo.
+                  </h3>
+                  <p>
+                    Copy it into <code>.github/workflows</code> with three secrets,
+                    then run onboarding once so your Mind can read the repo and
+                    propose your brand.
+                  </p>
+                  <CopySheet
+                    file=".github/workflows/imaji.yml"
+                    fact={workflow ? `${lines(workflow)}, YAML` : undefined}
                     text={workflow ?? ""}
                     label="Copy the workflow"
-                    variant="primary"
-                    icon={false}
-                    className={workflow ? "" : "pointer-events-none opacity-40"}
+                    kind="code"
+                    disabled={!workflow}
                   />
+                  <p className="fd-secrets">
+                    <span>Secrets it needs</span>
+                    <code>MINDS_API_KEY</code>
+                    <code>MIND_ID</code>
+                    <code>IMAJI_KIT_TOKEN</code>
+                  </p>
+                </div>
+
+                <div className="fd-step fd-mint" data-reveal>
+                  <h3>
+                    <span className="fd-step-n">3</span>Mint a kit token.
+                  </h3>
+                  <p>
+                    One button. It lets your Mind post a kit and keeps those kits
+                    private. Shown once, so keep it.
+                  </p>
+                  <div className="fd-row">
+                    <TokenMint />
+                  </div>
                 </div>
               </div>
 
-              <div className="fd-step fd-mint" data-reveal>
-                <h3>Mint a kit token.</h3>
+              <div className="fd-agent" data-reveal>
                 <p>
-                  One button. It lets your Mind post a kit and keeps those kits
-                  private. Shown once, so keep it.
+                  Using a coding agent to set it up? Paste this instead, and it
+                  does all three for you.
                 </p>
-                <div className="fd-row">
-                  <TokenMint />
-                </div>
+                <CopySheet
+                  file="one prompt"
+                  fact="reads /agents.md"
+                  text={AGENT_PROMPT}
+                  label="Copy the prompt"
+                  kind="quote"
+                />
               </div>
             </div>
-            <p className="fd-agent" data-reveal>
-              Using a coding agent to set it up?{" "}
-              <CopyButton
-                text={AGENT_PROMPT}
-                label="Copy the prompt"
-                variant="link"
-                icon={false}
-              />
-              .
-            </p>
-          </div>
-        </section>
-      <footer className="fd-foot">
-        <div className="fd-col">
-          <p className="fd-sign" data-reveal>
-            For solo builders who only ship.
-          </p>
-          <div className="fd-legal">
-            <span>Apache-2.0, s0nderlabs</span>
-            <span className="fd-legal-links">
-              <Link href="/docs">Docs</Link>
-              <a href={`https://${REPO}`} target="_blank" rel="noreferrer noopener">
-                {REPO}
-              </a>
-            </span>
-          </div>
+          </section>
+
+          <footer className="fd-foot">
+            <div className="fd-col">
+              <p className="fd-sign" data-reveal>
+                For solo builders who only ship.
+              </p>
+              <div className="fd-legal">
+                <span>Apache-2.0, s0nderlabs</span>
+                <span className="fd-legal-links">
+                  <Link href="/docs">Docs</Link>
+                  <a href={`https://${REPO}`} target="_blank" rel="noreferrer noopener">
+                    {REPO}
+                  </a>
+                </span>
+              </div>
+            </div>
+          </footer>
         </div>
-      </footer>
-      </div>
       </main>
     </div>
   );

@@ -2,6 +2,7 @@ import type { KitJSON } from "@/lib/kit";
 import type { CardStatus, FilmStatus, Meta } from "@/lib/store";
 
 import CopyButton from "./CopyButton";
+import { LinkedInLogo, LinkedInPost, XLogo, XPost, XThread, liAge, xDate, type Author } from "./SocialMock";
 import VideoPanel from "./VideoPanel";
 import {
   asSentence,
@@ -18,17 +19,22 @@ import {
 
 function Words({
   heading,
+  icon,
   action,
   children,
 }: {
   heading: string;
+  icon?: React.ReactNode;
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section className="w">
       <div className="w-head">
-        <h2>{heading}</h2>
+        <h2>
+          {icon}
+          {heading}
+        </h2>
         {action}
       </div>
       <div className="w-body">{children}</div>
@@ -69,6 +75,15 @@ export default function KitCard({
   const linkedin = kit.linkedin ? paragraphs(kit.linkedin) : [];
 
   const headline = kit.card.headline || kit.version;
+  const author: Author = {
+    name: kit.brand.name,
+    handle: kit.repo.split("/")[0] || kit.brand.name,
+    logo: kit.brand.logoUrl ?? null,
+    ground: kit.brand.ground === "light" ? "light" : "dark",
+    sub: kit.repo,
+  };
+  const postedX = xDate(meta?.receivedAt);
+  const postedLi = liAge(meta?.receivedAt);
   const split = splitAccentWord(headline, kit.card.accentWord);
   /* one visual gets the whole tray; two or more share it */
   const mediaCount = [cardStatus, filmStatus, verticalStatus, launchStatus].filter(
@@ -202,46 +217,67 @@ export default function KitCard({
         {tweet ? (
           <Words
             heading="The tweet"
+            icon={<XLogo className="w-icon" />}
             action={<CopyButton text={tweet} label="Copy" />}
           >
-            <p className="copy-text measure">{tweet}</p>
+            <div className="w-mock">
+              <XPost
+                author={author}
+                text={tweet}
+                when={postedX}
+                media={cardStatus === "done" ? `${base}/card.png` : null}
+                mediaAlt={headline}
+              />
+              <p className="w-note num">{tweet.length} characters, the card attached.</p>
+            </div>
           </Words>
         ) : null}
 
         {thread.length > 0 ? (
           <Words
             heading="The thread"
+            icon={<XLogo className="w-icon" />}
             action={
               <CopyButton text={thread.join("\n\n")} label="Copy all" />
             }
           >
-            <ol className="thread measure">
-              {thread.map((part, i) => (
-                <li key={i}>
-                  <span className="n num">{i + 1}</span>
-                  <span className="row">
-                    <span className="copy-text">{part}</span>
+            <div className="w-mock">
+              <XThread
+                author={author}
+                parts={thread}
+                when={postedX}
+                media={cardStatus === "done" ? `${base}/card.png` : null}
+                mediaAlt={headline}
+              />
+              <ol className="w-parts">
+                {thread.map((part, i) => (
+                  <li key={i}>
+                    <span className="num">{i + 1}</span>
+                    <span className="num">{part.length} chars</span>
                     <CopyButton text={part} label="Copy" variant="bare" />
-                  </span>
-                </li>
-              ))}
-            </ol>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </Words>
         ) : null}
 
         {linkedin.length > 0 ? (
           <Words
             heading="For LinkedIn"
+            icon={<LinkedInLogo className="w-icon" />}
             action={
               <CopyButton text={linkedin.join("\n\n")} label="Copy" />
             }
           >
-            <div className="measure flex flex-col gap-3">
-              {linkedin.map((p, i) => (
-                <p key={i} className="copy-text">
-                  {p}
-                </p>
-              ))}
+            <div className="w-mock">
+              <LinkedInPost
+                author={author}
+                paragraphs={linkedin}
+                when={postedLi}
+                media={cardStatus === "done" ? `${base}/card.png` : null}
+                mediaAlt={headline}
+              />
             </div>
           </Words>
         ) : null}

@@ -9,7 +9,7 @@ export default function Switcher({
   tabs,
   initial = 0,
 }: {
-  tabs: Array<{ key: string; label: string; node: React.ReactNode }>;
+  tabs: Array<{ key: string; label: string; node: React.ReactNode; icon?: React.ReactNode }>;
   initial?: number;
 }) {
   const base = useId();
@@ -69,6 +69,7 @@ export default function Switcher({
             className={i === active ? "is-on" : undefined}
             onClick={() => setActive(i)}
           >
+            {tab.icon ?? null}
             {tab.label}
           </button>
         ))}

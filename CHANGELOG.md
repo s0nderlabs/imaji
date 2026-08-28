@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and th
 
 0.1.0 and 0.2.0 were cut on the same day as 0.3.0, during the build, and their kits are public ([v0.1.0](https://imaji.s0nderlabs.xyz/k/9b67acb83bf6c255a882cd82/v0.1.0), [v0.2.0](https://imaji.s0nderlabs.xyz/k/9b67acb83bf6c255a882cd82/v0.2.0)); the repository was first published at 0.3.0. Per-release notes, exactly as the Mind received them, live in [docs/releases/](docs/releases/).
 
+## [0.3.1] - 2026-08-28
+
+### Changed
+
+- **The front door, second pass.** The curtain and the wheel-hijacking smooth scroll are gone; the page scrolls natively. "How a release becomes a kit" is now five visible steps (you, GitHub, your Mind, your Mind, imaji) in one rail, with the two Mind steps underlined in the accent, and the old unfolding claims became a real FAQ ("Do I ever have to prompt it?", "What if the release is just a typo fix?", "Does it post anything for me?"). The vertical cut is centred with its size named under it.
+- **Posts shown where they are going.** The tweet, the thread and the LinkedIn post are rendered as faithful mocks of an X post, an X thread (avatars joined by the thread line, the card attached to the first post) and a LinkedIn post (Follow, "…more" that opens in place, the platform's action row), in the platforms' own type stacks and colours, light and dark, with the X and LinkedIn marks on their tabs. Nothing is invented: no counts, no followers; the date is the kit's own. The kit pages use the same mocks under the same copy buttons.
+- **What you copy is shown.** Each "Copy" on the front door sits in the title bar of a sheet that shows the exact text it copies: `job.md` as prose, `.github/workflows/imaji.yml` as code with the three secret names under it, and the coding-agent prompt as a quote.
+- **"What it kept"** reads as three labelled rows (remembered, left out on purpose, how it happened) instead of a paragraph.
+- **README** links the public kit index (`/k/9b67acb83bf6c255a882cd82/`) from the header and the "It ran, for real" section.
+
+### Removed
+
+- `src/components/Curtain.tsx` and its stylesheet rules.
+
 ## [0.3.0] - 2026-08-28
 
 ### Added
@@ -72,6 +86,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and th
 - **The render service**: `POST /api/render` takes the kit JSON, validates and normalises it with zod, and renders a 1200x630 social card from HTML with Chrome. Deterministic, on brand, no image model.
 - **Private kit pages** at `/k/<token>/<tag>`, plus `POST /api/tokens` to mint the kit token that scopes them. Nothing is posted anywhere.
 
+[0.3.1]: https://github.com/s0nderlabs/imaji/releases/tag/v0.3.1
 [0.3.0]: https://github.com/s0nderlabs/imaji/releases/tag/v0.3.0
 [0.2.0]: https://github.com/s0nderlabs/imaji/releases/tag/v0.2.0
 [0.1.0]: https://github.com/s0nderlabs/imaji/releases/tag/v0.1.0

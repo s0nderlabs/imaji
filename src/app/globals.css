@@ -1820,10 +1820,8 @@ a {
   display: none;
 }
 
-/* ------------------------------------------------------------ the curtain
-   The hero is pinned while everything after it slides up over it as one
-   sheet. As the hero is covered it dims and its copy lifts, both from one
-   number (--cover) written on a frame. The flow height is unchanged. */
+/* ------------------------------------------------------------- the fold
+   The hero fills the first screen; the rest of the page follows in flow. */
 html {
   scroll-behavior: smooth;
 }
@@ -1845,60 +1843,23 @@ html {
   justify-content: center;
   padding: 56px 0 64px;
 }
-.fd-curtain .fd-fold {
-  position: sticky;
-  top: 0;
-  z-index: 0;
-}
-.fd-curtain .fd-fold::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: oklch(12% 0.01 60);
-  opacity: calc(var(--cover, 0) * 0.62);
-  pointer-events: none;
-}
-.fd-curtain .fd-fold .fd-hero {
-  filter: opacity(calc(1 - var(--cover, 0) * 1.4));
-  translate: 0 calc(var(--cover, 0) * -48px);
-}
-.fd-curtain .fd-fold .fd-top {
-  filter: opacity(calc(1 - var(--cover, 0) * 2));
-}
 .fd-after {
   position: relative;
-  z-index: 1;
   background: var(--page);
 }
-.fd-curtain .fd-after {
-  border-radius: 22px 22px 0 0;
-  box-shadow:
-    0 -1px 0 var(--line-soft),
-    0 -28px 70px -40px oklch(0% 0 0 / 0.35);
-}
-.fd-seq {
-  padding-top: 150px;
-}
+.fd-seq,
 .fd-kit,
+.fd-faq,
 .fd-start {
-  padding-top: 200px;
+  padding-top: 128px;
 }
 .fd-foot {
-  margin-top: 210px;
-  padding-bottom: 110px;
+  margin-top: 140px;
+  padding-bottom: 96px;
 }
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-  .fd-curtain .fd-fold::after {
-    display: none;
-  }
-  .fd-curtain .fd-fold .fd-hero,
-  .fd-curtain .fd-fold .fd-top {
-    filter: none;
-    translate: none;
   }
 }
 
@@ -1962,57 +1923,871 @@ html {
   display: none;
 }
 
-/* ------------------------------------------------------ pages and curtains
-   Every page is its own sheet of paper. The one being read pins at the top;
-   the next slides up over it like a curtain, and the pinned one eases back
-   underneath (smaller, dimmer, drifting up more slowly than the sheet that
-   covers it). The flow height is unchanged, so the page stays short. */
+/* ------------------------------------------------------------- the fold
+   The hero fills the first screen; the rest of the page follows in flow. */
 html {
   scroll-behavior: smooth;
 }
-.fd-curtain .fd-page[data-pin] {
-  position: sticky;
-  top: 0;
+.fd-fold {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: 0;
+}
+.fd-fold .fd-top {
+  padding-top: 30px;
+}
+.fd-fold .fd-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 56px 0 64px;
+}
+.fd-after {
+  position: relative;
   background: var(--page);
-  isolation: isolate;
 }
-.fd-curtain .fd-seq {
-  z-index: 2;
+.fd-seq {
+  padding-top: 150px;
 }
-.fd-curtain .fd-kit {
-  z-index: 3;
+
+/* ------------------------------------------------ the theme toggle's word
+   The toggle names the page you would land in, and the word is chosen here
+   from the same three conditions the palette uses, so nothing hydrates. */
+.fd-quiet {
+  font: inherit;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color 160ms var(--ease);
 }
-.fd-curtain .fd-start {
-  z-index: 4;
+.fd-quiet:hover {
+  color: var(--ink);
 }
-.fd-curtain .fd-foot {
-  z-index: 5;
+.theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: var(--ink-2);
 }
-.fd-curtain .fd-page + .fd-page {
-  border-radius: 22px 22px 0 0;
-  box-shadow:
-    0 -1px 0 var(--line-soft),
-    0 -28px 70px -40px oklch(0% 0 0 / 0.35);
+.theme-toggle:hover {
+  color: var(--ink);
 }
-.fd-curtain .fd-page > .fd-col {
-  transform: translateY(calc(var(--p, 0) * -48px)) scale(calc(1 - var(--p, 0) * 0.035));
-  transform-origin: 50% 0;
-  opacity: calc(1 - var(--p, 0) * 0.55);
-  will-change: transform, opacity;
+.theme-toggle span {
+  display: none;
+  line-height: 0;
 }
-.fd-curtain .fd-fold {
-  padding-bottom: 24px;
+.theme-toggle .theme-dark {
+  display: inline;
 }
-.fd-curtain .fd-seq,
-.fd-curtain .fd-kit,
-.fd-curtain .fd-start {
-  padding-bottom: 28px;
+.theme-light {
+  display: none;
 }
-.fd-curtain .fd-foot {
-  padding-top: 32px;
+.theme-dark {
+  display: inline;
 }
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-dark {
+    display: none;
   }
+  :root:not([data-theme="light"]) .theme-light {
+    display: inline;
+  }
+}
+[data-theme="dark"] .theme-dark {
+  display: none;
+}
+[data-theme="dark"] .theme-light {
+  display: inline;
+}
+[data-theme="light"] .theme-dark {
+  display: inline;
+}
+[data-theme="light"] .theme-light {
+  display: none;
+}
+
+
+/* =========================================================================
+   Front door, second pass: the five steps, the questions, the posts shown
+   the way they will look where they are going, and the copy sheets.
+   ========================================================================= */
+
+/* ------------------------------------------------------- the five steps */
+.fd-steps5 {
+  margin: 30px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  border-radius: var(--r);
+  background: var(--card-2);
+  box-shadow: inset 0 0 0 1px var(--line), var(--shadow-lift);
+  overflow: hidden;
+}
+.fd-s5 {
+  position: relative;
+  padding: 22px 20px 24px;
+  box-shadow: inset 1px 0 0 var(--line);
+}
+.fd-s5:first-child {
+  box-shadow: none;
+}
+.fd-s5-n {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.fd-s5-who {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+  background: var(--inset);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.fd-s5-your-Mind .fd-s5-who {
+  color: var(--accent-ink);
+  background: var(--accent-tint);
+  box-shadow: none;
+}
+.fd-s5 h3 {
+  margin: 12px 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.35;
+  letter-spacing: -0.004em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.fd-s5 p {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+/* the accent runs under the Mind's two steps: that is where the thinking is */
+.fd-s5-your-Mind::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+}
+@media (max-width: 980px) {
+  .fd-steps5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fd-s5 {
+    box-shadow: inset 1px 0 0 var(--line), inset 0 1px 0 var(--line);
+  }
+  .fd-s5:nth-child(-n + 2) {
+    box-shadow: inset 1px 0 0 var(--line);
+  }
+  .fd-s5:nth-child(odd) {
+    box-shadow: inset 0 1px 0 var(--line);
+  }
+  .fd-s5:first-child {
+    box-shadow: none;
+  }
+}
+@media (max-width: 560px) {
+  .fd-steps5 {
+    grid-template-columns: 1fr;
+  }
+  .fd-s5,
+  .fd-s5:nth-child(-n + 2),
+  .fd-s5:nth-child(odd) {
+    box-shadow: inset 0 1px 0 var(--line);
+  }
+  .fd-s5:first-child {
+    box-shadow: none;
+  }
+}
+
+/* ------------------------------------------------------------ questions */
+.fd-faq .fd-beats {
+  margin-top: 18px;
+  max-width: 38em;
+}
+.fd-beat .fd-say {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.004em;
+}
+
+/* -------------------------------------------------- the kit, second pass */
+.fd-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.fd-tabicon {
+  width: 13px;
+  height: 13px;
+  opacity: 0.85;
+}
+.fd-portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.fd-portrait .fd-cap {
+  max-width: none;
+  padding: 0;
+  text-align: center;
+}
+.fd-plate.fd-tall {
+  width: min(300px, 100%);
+  margin-inline: auto;
+}
+.fd-social {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.fd-social .fd-cap {
+  text-align: center;
+}
+.fd-kept {
+  max-width: 38em;
+}
+.fd-kept-row {
+  display: grid;
+  grid-template-columns: 9.5em 1fr;
+  gap: 18px;
+  padding: 14px 0;
+  box-shadow: inset 0 1px 0 var(--line-soft);
+}
+.fd-kept-row:first-child {
+  padding-top: 0;
+  box-shadow: none;
+}
+.fd-kept-k {
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-3);
+  padding-top: 3px;
+}
+.fd-kept-row p {
+  margin: 0;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+@media (max-width: 560px) {
+  .fd-kept-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* ------------------------------------------------------------ the mocks
+   Two foreign objects on our paper: they keep their own type stacks and
+   colours, and answer to the page theme the way the real apps do. */
+.sm {
+  --x-bg: #ffffff;
+  --x-ink: #0f1419;
+  --x-mute: #536471;
+  --x-line: #cfd9de;
+  --x-soft: #eff3f4;
+  --x-blue: #1d9bf0;
+  --li-bg: #ffffff;
+  --li-ink: rgba(0, 0, 0, 0.9);
+  --li-mute: rgba(0, 0, 0, 0.6);
+  --li-line: rgba(0, 0, 0, 0.08);
+  --li-blue: #0a66c2;
+  width: 100%;
+  max-width: 598px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  text-align: left;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sm {
+    --x-bg: #000000;
+    --x-ink: #e7e9ea;
+    --x-mute: #71767b;
+    --x-line: #2f3336;
+    --x-soft: #16181c;
+    --li-bg: #1b1f23;
+    --li-ink: rgba(255, 255, 255, 0.9);
+    --li-mute: rgba(255, 255, 255, 0.6);
+    --li-line: rgba(255, 255, 255, 0.15);
+    --li-blue: #71b7fb;
+  }
+}
+[data-theme="dark"] .sm {
+  --x-bg: #000000;
+  --x-ink: #e7e9ea;
+  --x-mute: #71767b;
+  --x-line: #2f3336;
+  --x-soft: #16181c;
+  --li-bg: #1b1f23;
+  --li-ink: rgba(255, 255, 255, 0.9);
+  --li-mute: rgba(255, 255, 255, 0.6);
+  --li-line: rgba(255, 255, 255, 0.15);
+  --li-blue: #71b7fb;
+}
+.sm-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+}
+.sm-avatar-round {
+  border-radius: 999px;
+}
+.sm-avatar-square {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+}
+.sm-avatar-dark {
+  background: #1a1715;
+}
+.sm-avatar-light {
+  background: #f4f1ec;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.sm-avatar img {
+  display: block;
+  width: 70%;
+  height: auto;
+}
+.sm-avatar b {
+  font-weight: 700;
+  font-size: 18px;
+  color: #fff;
+}
+.sm-avatar-light b {
+  color: #1a1715;
+}
+
+/* X */
+.x-post {
+  background: var(--x-bg);
+  color: var(--x-ink);
+  padding: 12px 16px 6px;
+  font-size: 15px;
+  line-height: 20px;
+}
+.sm.x-post,
+.x-thread {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--x-line), var(--shadow-lift);
+}
+.x-thread .x-post {
+  padding-bottom: 4px;
+}
+.x-thread .x-post + .x-post {
+  padding-top: 4px;
+}
+.x-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.x-rail {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: stretch;
+}
+.x-line {
+  flex: 1;
+  width: 2px;
+  margin-top: 4px;
+  background: var(--x-line);
+  border-radius: 1px;
+}
+.x-main {
+  flex: 1;
+  min-width: 0;
+}
+.x-head {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+.x-name {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.x-handle {
+  color: var(--x-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.x-dot {
+  padding: 0 4px;
+}
+.x-more {
+  margin-left: auto;
+  width: 18.75px;
+  height: 18.75px;
+  color: var(--x-mute);
+  align-self: center;
+}
+.x-more svg,
+.x-act svg {
+  width: 18.75px;
+  height: 18.75px;
+  fill: currentColor;
+}
+.x-text {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.x-text a {
+  color: var(--x-blue);
+  text-decoration: none;
+}
+.x-text a:hover {
+  text-decoration: underline;
+}
+.x-media {
+  margin-top: 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--x-line);
+}
+.x-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.x-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 425px;
+  margin-top: 8px;
+  padding: 4px 0;
+  color: var(--x-mute);
+}
+.x-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+.x-act-end {
+  gap: 14px;
+}
+
+/* LinkedIn */
+.li-post {
+  background: var(--li-bg);
+  color: var(--li-ink);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--li-line), var(--shadow-lift);
+  font-size: 14px;
+  line-height: 20px;
+}
+.li-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px 0;
+}
+.li-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.li-name {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.li-sub,
+.li-when {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--li-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.li-when {
+  display: inline-flex;
+  align-items: center;
+}
+.li-dot {
+  padding: 0 4px;
+}
+.li-globe {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.li-follow {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 2px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--li-blue);
+}
+.li-follow svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.li-body {
+  padding: 8px 16px 12px;
+}
+.li-body p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.li-body p + p {
+  margin-top: 20px;
+}
+.li-body a {
+  color: var(--li-blue);
+  font-weight: 600;
+  text-decoration: none;
+}
+.li-body a:hover {
+  text-decoration: underline;
+}
+.li-more summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--li-mute);
+  font-weight: 600;
+  width: max-content;
+}
+.li-more summary::-webkit-details-marker {
+  display: none;
+}
+.li-more summary:hover {
+  color: var(--li-blue);
+  text-decoration: underline;
+}
+.li-more[open] summary {
+  display: none;
+}
+.li-more[open] > p:first-of-type {
+  margin-top: 20px;
+}
+.li-ellipsis {
+  color: var(--li-ink);
+  font-weight: 400;
+}
+.li-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.li-actions {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 4px 8px;
+  margin-top: 0;
+  box-shadow: inset 0 1px 0 var(--li-line);
+  color: var(--li-mute);
+}
+.li-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.li-act svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+@media (max-width: 480px) {
+  .li-act {
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    padding: 8px 4px;
+  }
+  .x-actions {
+    max-width: none;
+  }
+}
+
+/* --------------------------------------------------------- copy sheets */
+.fd-step-n {
+  display: inline-grid;
+  place-items: center;
+  width: 1.55em;
+  height: 1.55em;
+  margin-right: 0.55em;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.68em;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: var(--inset);
+  box-shadow: inset 0 0 0 1px var(--line);
+  vertical-align: 0.18em;
+}
+.fd-step {
+  max-width: none;
+  padding: 26px 0;
+}
+.fd-step > p {
+  max-width: 33.5em;
+}
+.sheet {
+  margin-top: 16px;
+  border-radius: var(--r);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line), var(--shadow-card);
+  overflow: hidden;
+}
+.sheet.is-off {
+  opacity: 0.6;
+}
+.sheet-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 10px 10px 16px;
+  background: var(--card-2);
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+.sheet-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.sheet-file svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--ink-3);
+}
+.sheet-file code {
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sheet-fact {
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.sheet-fact::before {
+  content: "·";
+  padding-right: 8px;
+}
+.fd .sheet-bar .btn {
+  height: 36px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+.sheet-body {
+  position: relative;
+  max-height: 300px;
+  overflow: auto;
+  scrollbar-width: thin;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
+}
+.sheet-body:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--accent) 52%, transparent);
+  outline-offset: -2px;
+}
+.sheet-quote .sheet-body {
+  max-height: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.sheet-prose {
+  padding: 18px 20px 48px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 68ch;
+}
+.sheet-code .sheet-body {
+  max-height: 320px;
+  background: var(--stage);
+  color: var(--on-stage);
+}
+.sheet-code pre {
+  margin: 0;
+  padding: 16px 20px 48px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  tab-size: 2;
+  white-space: pre;
+  color: var(--on-stage);
+}
+.sheet-code pre code {
+  font: inherit;
+  color: inherit;
+}
+.sheet-code .sheet-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.sheet-code .sheet-body::-webkit-scrollbar-thumb {
+  background: oklch(100% 0 0 / 0.18);
+  border-radius: 999px;
+}
+.sheet blockquote {
+  margin: 0;
+  padding: 16px 20px 18px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  border-left: 3px solid var(--accent);
+  text-wrap: pretty;
+}
+.fd-secrets {
+  margin: 12px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.fd-secrets code {
+  font-size: 12.5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--ink-2);
+  background: var(--inset);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.fd-agent {
+  margin-top: 26px;
+  padding-top: 26px;
+  max-width: none;
+  box-shadow: inset 0 1px 0 var(--line);
+}
+.fd-agent > p {
+  margin: 0;
+  max-width: 33.5em;
+  color: var(--ink-2);
+}
+.fd-mint .fd-row {
+  margin-top: 16px;
+}
+.fd-start .fd-lede,
+.fd-seq .fd-lede {
+  margin-top: 12px;
+  max-width: 28.5em;
+}
+.fd-start .fd-steps {
+  margin-top: 24px;
+}
+@media (max-width: 820px) {
+  .sheet-bar {
+    flex-wrap: wrap;
+  }
+  .fd .sheet-bar .btn:not(.btn-link) {
+    width: auto;
+  }
+}
+
+
+/* ------------------------------------------------ the kit page's posts
+   The same mocks the front door uses, on the kit's white sheet. */
+.w-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.w-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--ink-3);
+}
+.w-mock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.w-mock .sm {
+  max-width: 598px;
+}
+.w-note {
+  margin: 0;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.w-parts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.w-parts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.w-parts li > .num:first-child {
+  display: inline-grid;
+  place-items: center;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 999px;
+  color: var(--ink-2);
+  background: var(--inset);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
