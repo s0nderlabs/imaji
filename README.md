@@ -1,4 +1,9 @@
-<h1 align="center">imaji</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/imaji-5b-on-dark.svg">
+    <img src="public/imaji-5b-on-light.svg" alt="imaji" width="220">
+  </picture>
+</p>
 
 <p align="center">
   <b>One release in, a whole launch kit out.</b>
